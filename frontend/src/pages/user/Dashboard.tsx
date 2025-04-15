@@ -251,7 +251,7 @@ const UserDashboard = () => {
             variant="outline"
             colorScheme="purple"
           >
-            View Histor
+            View History
           </Button>
         </Stat>
 

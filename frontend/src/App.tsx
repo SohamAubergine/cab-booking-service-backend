@@ -25,7 +25,6 @@ const ClassList = lazy(() => import("./pages/user/ClassList"));
 const BookingList = lazy(() => import("./pages/user/BookingList"));
 const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 const UserDashboard = lazy(() => import("./pages/user/Dashboard"));
-const FriendsPage = lazy(() => import("./pages/user/FriendsPage"));
 const Favorites = lazy(() => import("./pages/user/Favorites"));
 
 // Instructor pages

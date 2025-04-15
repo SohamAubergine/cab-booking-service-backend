@@ -31,9 +31,6 @@ import {
 } from "react-icons/fa";
 import { useRef } from "react";
 
-// Add React import for ElementType
-import React from "react";
-
 // Motion components
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);

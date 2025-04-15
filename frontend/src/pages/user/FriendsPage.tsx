@@ -9,10 +9,6 @@ import {
   TabPanels,
   Tab,
   TabPanel,
-  Grid,
-  GridItem,
-  Button,
-  Input,
   FormControl,
   FormLabel,
   InputGroup,
@@ -36,7 +32,7 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
-import { friendshipService, userService } from "../../services/api";
+import { friendshipService } from "../../services/api";
 import { Friendship, FriendshipStatus, User, UserRole } from "../../types";
 import FriendRequestList from "../../components/FriendRequestList";
 import FriendRequestButton from "../../components/FriendRequestButton";

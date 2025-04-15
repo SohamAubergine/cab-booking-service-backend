@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
   Heading,
   Text,
-  Stack,
   Button,
   Flex,
   Badge,
@@ -20,12 +19,8 @@ import {
   HStack,
   VStack,
   useColorModeValue,
-  Tag,
-  TagLabel,
-  Tooltip,
   CardHeader,
-  CardFooter,
-  IconButton,
+  Stack,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -36,23 +31,13 @@ import {
   Tab,
   TabPanel,
 } from "@chakra-ui/react";
+import { CalendarIcon, TimeIcon } from "@chakra-ui/icons";
 import {
-  ChevronLeftIcon,
-  CalendarIcon,
-  TimeIcon,
-  InfoIcon,
-  StarIcon,
-} from "@chakra-ui/icons";
-import {
-  FaMapMarkerAlt,
   FaChalkboardTeacher,
   FaRegCalendarAlt,
-  FaCalendarCheck,
   FaArrowLeft,
   FaCheckCircle,
   FaUsers,
-  FaStar,
-  FaComment,
 } from "react-icons/fa";
 import { format } from "date-fns";
 import {
@@ -60,7 +45,7 @@ import {
   bookingService,
   reviewService,
 } from "../../services/api";
-import { FitnessClass, Booking, Review, ClassRatingSummary } from "../../types";
+import { FitnessClass, Review, ClassRatingSummary } from "../../types";
 import Loading from "../../components/Loading";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import ReviewForm from "../../components/ReviewForm";
@@ -97,7 +82,6 @@ const itemVariants = {
 const ClassDetails = () => {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const toast = useToast();
   const [fitnessClass, setFitnessClass] = useState<FitnessClass | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -11,7 +11,6 @@ import {
   Flex,
   Icon,
   useColorModeValue,
-  VStack,
   HStack,
   Button,
   Card,
@@ -27,11 +26,6 @@ import {
   TableContainer,
   Avatar,
   Select,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Divider,
   Skeleton,
   useToast,
 } from "@chakra-ui/react";
@@ -40,17 +34,7 @@ import {
   FaDumbbell,
   FaChartLine,
   FaMoneyBillWave,
-  FaCalendarAlt,
   FaCog,
-  FaEllipsisV,
-  FaExclamationCircle,
-  FaCheckCircle,
-  FaPencilAlt,
-  FaStar,
-  FaUsersCog,
-  FaClipboardList,
-  FaBell,
-  FaExclamationTriangle,
   FaSync,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -87,13 +71,20 @@ const itemVariants = {
   },
 };
 
+// Extended FitnessClass type with _count property for admin dashboard
+interface ExtendedFitnessClass extends FitnessClass {
+  _count?: {
+    bookings: number;
+  };
+}
+
 interface DashboardStats {
   totalUsers: number;
   activeClasses: number;
   revenue: number;
   growthRate: number;
   recentUsers: User[];
-  popularClasses: FitnessClass[];
+  popularClasses: ExtendedFitnessClass[];
 }
 
 const AdminDashboard = () => {
@@ -116,32 +107,8 @@ const AdminDashboard = () => {
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headingColor = useColorModeValue("gray.800", "white");
   const statBg = useColorModeValue("purple.50", "purple.900");
-  const tableBg = useColorModeValue("white", "gray.800");
   const tableHeaderBg = useColorModeValue("gray.50", "gray.700");
   const tableRowHoverBg = useColorModeValue("gray.50", "gray.700");
-  const greenBg = useColorModeValue("green.50", "green.900");
-  const redBg = useColorModeValue("red.50", "red.900");
-  const yellowBg = useColorModeValue("yellow.50", "yellow.900");
-  const buttonBgGradient = "linear(to-r, purple.600, pink.500)";
-  const buttonHoverBgGradient = "linear(to-r, purple.700, pink.600)";
-
-  // Issues that need attention (static for now)
-  const issuesNeedingAttention = [
-    {
-      id: 1,
-      title: "Payment System Error",
-      description: "Multiple users reporting payment failures",
-      priority: "High",
-      reported: "Aug 14, 2023",
-    },
-    {
-      id: 2,
-      title: "Booking System Lag",
-      description: "System slow during peak hours",
-      priority: "Medium",
-      reported: "Aug 13, 2023",
-    },
-  ];
 
   useEffect(() => {
     fetchDashboardStats();
@@ -162,88 +129,6 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         console.warn("Using mock data - API endpoint not implemented", err);
-
-        // Fallback to mock data if API call fails
-        // In a production environment, you'd want to show the error instead
-        setTimeout(() => {
-          setDashboardData({
-            totalUsers: 235,
-            activeClasses: 21,
-            revenue: 12850,
-            growthRate: 18,
-            recentUsers: [
-              {
-                id: "1",
-                name: "John Doe",
-                email: "john.doe@example.com",
-                role: "INSTRUCTOR",
-                createdAt: new Date("2023-08-15").toISOString(),
-              },
-              {
-                id: "2",
-                name: "Jane Smith",
-                email: "jane.smith@example.com",
-                role: "USER",
-                createdAt: new Date("2023-08-10").toISOString(),
-              },
-              {
-                id: "3",
-                name: "Mike Johnson",
-                email: "mike.j@example.com",
-                role: "USER",
-                createdAt: new Date("2023-08-08").toISOString(),
-              },
-              {
-                id: "4",
-                name: "Sarah Williams",
-                email: "s.williams@example.com",
-                role: "INSTRUCTOR",
-                createdAt: new Date("2023-08-05").toISOString(),
-              },
-            ],
-            popularClasses: [
-              {
-                id: "1",
-                name: "Morning Yoga",
-                instructor: { name: "Sarah Williams", id: "4" },
-                category: { name: "Yoga", id: "1" },
-                startsAt: new Date("2023-09-01T09:00:00").toISOString(),
-                endsAt: new Date("2023-09-01T10:00:00").toISOString(),
-                _count: { bookings: 152 },
-                createdAt: new Date("2023-07-15").toISOString(),
-                updatedAt: new Date("2023-07-15").toISOString(),
-                categoryId: "1",
-                instructorId: "4",
-              },
-              {
-                id: "2",
-                name: "HIIT Workout",
-                instructor: { name: "Mike Thompson", id: "5" },
-                category: { name: "HIIT", id: "2" },
-                startsAt: new Date("2023-09-02T10:00:00").toISOString(),
-                endsAt: new Date("2023-09-02T11:00:00").toISOString(),
-                _count: { bookings: 138 },
-                createdAt: new Date("2023-07-16").toISOString(),
-                updatedAt: new Date("2023-07-16").toISOString(),
-                categoryId: "2",
-                instructorId: "5",
-              },
-              {
-                id: "3",
-                name: "Pilates Basics",
-                instructor: { name: "Emma Johnson", id: "6" },
-                category: { name: "Pilates", id: "3" },
-                startsAt: new Date("2023-09-03T14:00:00").toISOString(),
-                endsAt: new Date("2023-09-03T15:00:00").toISOString(),
-                _count: { bookings: 124 },
-                createdAt: new Date("2023-07-17").toISOString(),
-                updatedAt: new Date("2023-07-17").toISOString(),
-                categoryId: "3",
-                instructorId: "6",
-              },
-            ],
-          });
-        }, 1000); // Simulate API delay
       }
     } catch (err) {
       const errorMessage =
@@ -275,35 +160,6 @@ const AdminDashboard = () => {
       default:
         return "gray";
     }
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "High":
-        return "red";
-      case "Medium":
-        return "orange";
-      case "Low":
-        return "yellow";
-      default:
-        return "gray";
-    }
-  };
-
-  // Function to format date strings
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  // Function to calculate revenue from a class based on bookings
-  const calculateClassRevenue = (bookingsCount: number) => {
-    // Assume $25 per booking
-    return bookingsCount * 25;
   };
 
   return (
@@ -673,29 +529,31 @@ const AdminDashboard = () => {
                               </Td>
                             </Tr>
                           ))
-                      : dashboardData.popularClasses.map((classItem) => (
-                          <Tr
-                            key={classItem.id}
-                            _hover={{ bg: tableRowHoverBg }}
-                            transition="background-color 0.2s"
-                          >
-                            <Td>
-                              <Box>
-                                <Text fontWeight="medium">
-                                  {classItem.name}
-                                </Text>
-                                <Text fontSize="xs" color={textColor}>
-                                  by{" "}
-                                  {classItem.instructor?.name ||
-                                    "Unknown Instructor"}
-                                </Text>
-                              </Box>
-                            </Td>
-                            <Td isNumeric fontWeight="medium">
-                              {classItem._count?.bookings || 0}
-                            </Td>
-                          </Tr>
-                        ))}
+                      : dashboardData.popularClasses.map(
+                          (classItem: ExtendedFitnessClass) => (
+                            <Tr
+                              key={classItem.id}
+                              _hover={{ bg: tableRowHoverBg }}
+                              transition="background-color 0.2s"
+                            >
+                              <Td>
+                                <Box>
+                                  <Text fontWeight="medium">
+                                    {classItem.name}
+                                  </Text>
+                                  <Text fontSize="xs" color={textColor}>
+                                    by{" "}
+                                    {classItem.instructor?.name ||
+                                      "Unknown Instructor"}
+                                  </Text>
+                                </Box>
+                              </Td>
+                              <Td isNumeric fontWeight="medium">
+                                {classItem._count?.bookings || 0}
+                              </Td>
+                            </Tr>
+                          )
+                        )}
                   </Tbody>
                 </Table>
               </TableContainer>

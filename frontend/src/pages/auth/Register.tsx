@@ -6,7 +6,6 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Stack,
   Link,
   Text,
   FormErrorMessage,
@@ -25,7 +24,6 @@ import {
   Heading,
   useColorModeValue,
   VStack,
-  HStack,
   Divider,
   Icon,
   Flex,
@@ -36,7 +34,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../../context/AuthContext";
-import { RegisterRequest, UserRole } from "../../types";
+import { RegisterRequest } from "../../types";
 import { motion } from "framer-motion";
 import {
   FaUser,
@@ -106,8 +104,6 @@ const Register = () => {
   const headingColor = useColorModeValue("gray.800", "white");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const linkColor = useColorModeValue("purple.600", "purple.300");
-  const tabBg = useColorModeValue("gray.50", "gray.700");
-  const selectedTabBg = useColorModeValue("white", "gray.800");
   const tabBorderColor = useColorModeValue("gray.200", "gray.600");
   const dividerColor = useColorModeValue("gray.200", "gray.700");
   const iconBg = useColorModeValue("purple.50", "purple.900");
