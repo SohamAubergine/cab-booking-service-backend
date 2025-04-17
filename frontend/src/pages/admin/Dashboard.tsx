@@ -28,20 +28,31 @@ import {
   Select,
   Skeleton,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import {
   FaUsers,
   FaDumbbell,
   FaChartLine,
   FaMoneyBillWave,
-  FaCog,
   FaSync,
+  FaBuilding,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { Link as RouterLink } from "react-router-dom";
 import { adminService } from "../../services/api";
-import { User, FitnessClass } from "../../types";
+import { User, FitnessClass, CreateGymRequest } from "../../types";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import * as toastUtils from "../../utils/toast";
 
@@ -92,6 +103,18 @@ const AdminDashboard = () => {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Create Gym Modal State
+  const [isCreateGymModalOpen, setIsCreateGymModalOpen] = useState(false);
+  const [gymFormData, setGymFormData] = useState<CreateGymRequest>({
+    name: "",
+    address: "",
+    ownerId: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userOptions, setUserOptions] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
   const [dashboardData, setDashboardData] = useState<DashboardStats>({
     totalUsers: 0,
     activeClasses: 0,
@@ -159,6 +182,96 @@ const AdminDashboard = () => {
         return "green";
       default:
         return "gray";
+    }
+  };
+
+  // Function to fetch users for the ownerId dropdown
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await adminService.getUsers(1, 10);
+      if (response.success) {
+        setUserOptions(response.data.data);
+      } else {
+        throw new Error(response.message || "Failed to fetch users");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch users";
+      toast(toastUtils.errorToast("Error", errorMessage));
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // Open the modal and fetch user options
+  const handleOpenCreateGymModal = () => {
+    setIsCreateGymModalOpen(true);
+    fetchUsers();
+    // Reset the form data
+    setGymFormData({
+      name: "",
+      address: "",
+      ownerId: "",
+    });
+    setFormErrors({});
+  };
+
+  // Handle form input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setGymFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error for this field
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const errors = { ...prev };
+        delete errors[name];
+        return errors;
+      });
+    }
+  };
+
+  // Validate form before submission
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!gymFormData.name.trim()) {
+      errors.name = "Gym name is required";
+    }
+
+    if (!gymFormData.address.trim()) {
+      errors.address = "Address is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmitGym = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await adminService.createGym(gymFormData);
+      if (response.success) {
+        toast(toastUtils.successToast("Success", "Gym created successfully"));
+        setIsCreateGymModalOpen(false);
+      } else {
+        throw new Error(response.message || "Failed to create gym");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create gym";
+      toast(toastUtils.errorToast("Error", errorMessage));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -332,15 +445,14 @@ const AdminDashboard = () => {
           </Button>
           <Button
             as={RouterLink}
-            // to="/admin/settings"
+            to="/admin/gyms"
             colorScheme="purple"
             variant="outline"
-            leftIcon={<FaCog />}
+            leftIcon={<FaBuilding />}
             size="lg"
             m={2}
-            disabled
           >
-            System Settings
+            Manage Gyms
           </Button>
         </HStack>
       </MotionBox>
@@ -561,6 +673,79 @@ const AdminDashboard = () => {
           </Card>
         </MotionBox>
       </SimpleGrid>
+
+      {/* Create Gym Modal */}
+      <Modal
+        isOpen={isCreateGymModalOpen}
+        onClose={() => setIsCreateGymModalOpen(false)}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Gym</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl isInvalid={!!formErrors.name} mb={4}>
+              <FormLabel>Gym Name</FormLabel>
+              <Input
+                name="name"
+                value={gymFormData.name}
+                onChange={handleInputChange}
+                placeholder="Enter gym name"
+              />
+              {formErrors.name && (
+                <FormErrorMessage>{formErrors.name}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl isInvalid={!!formErrors.address} mb={4}>
+              <FormLabel>Address</FormLabel>
+              <Input
+                name="address"
+                value={gymFormData.address}
+                onChange={handleInputChange}
+                placeholder="Enter gym address"
+              />
+              {formErrors.address && (
+                <FormErrorMessage>{formErrors.address}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mb={4}>
+              <FormLabel>Owner</FormLabel>
+              <Select
+                name="ownerId"
+                value={gymFormData.ownerId}
+                onChange={handleInputChange}
+                placeholder="Select owner"
+                isDisabled={isLoadingUsers}
+              >
+                {userOptions.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
+              </Select>
+              <Text fontSize="sm" color="gray.500" mt={1}>
+                If not selected, current user will be set as owner
+              </Text>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              colorScheme="purple"
+              mr={3}
+              onClick={handleSubmitGym}
+              isLoading={isSubmitting}
+            >
+              Create
+            </Button>
+            <Button onClick={() => setIsCreateGymModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </MotionBox>
   );
 };

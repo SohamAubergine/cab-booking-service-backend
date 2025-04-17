@@ -207,3 +207,20 @@ export interface ClassRatingSummary {
     fiveStars: number;
   };
 }
+
+// Gym Types
+export interface Gym {
+  id: string;
+  name: string;
+  address: string;
+  ownerId: string;
+  owner?: User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateGymRequest {
+  name: string;
+  address: string;
+  ownerId?: string;
+}

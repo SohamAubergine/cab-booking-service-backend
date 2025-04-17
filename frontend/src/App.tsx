@@ -36,6 +36,7 @@ const AdminClassManagement = lazy(
 );
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const AdminGymManagement = lazy(() => import("./pages/admin/GymManagement"));
 
 // Common pages
 const Home = lazy(() => import("./pages/Home"));
@@ -89,6 +90,7 @@ function App() {
                     path="/admin/users"
                     element={<AdminUserManagement />}
                   />
+                  <Route path="/admin/gyms" element={<AdminGymManagement />} />
 
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
