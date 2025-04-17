@@ -35,7 +35,7 @@ model User {
   bookings        FitnessClassBooking[]
   reviews         FitnessClassReview[]
   favorites       FavoriteClass[]
-
+  ownedGyms       Gym[]     // Relation field for gyms owned by this user
   @@map("users")
 }
 
@@ -112,6 +112,18 @@ model FavoriteClass {
 
   @@unique([userId, fitnessClassId]) // Can only favorite a class once
   @@map("favorite_classes")
+}
+
+model Gym {
+  id String @id @default(uuid())
+  name String
+  address String
+  ownerId String @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  owner User @relation(fields: [ownerId], references: [id])
+  @@map("gyms")
 }
 
 

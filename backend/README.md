@@ -220,6 +220,13 @@ A Postman collection is included in the project root (`postman_collection.json`)
     - `page` - Page number (default: 1)
     - `limit` - Items per page (default: 10)
     - `name` - Search instructors by name (optional, case-insensitive)
+- `POST /api/admin/gyms` - Create a new gym
+  - Requires admin role
+  - Request body parameters:
+    - `name` - Gym name (required)
+    - `address` - Gym address (required)
+    - `ownerId` - ID of the gym owner (optional, defaults to the authenticated user)
+  - Returns the created gym data
 
 ## Project Structure
 

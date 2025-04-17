@@ -5,7 +5,7 @@ export * as FitnessClassBookingTypes from './fitnessClassBooking.types'
 export * as InstructorTypes from './instructor.types'
 export * as FitnessClassReviewTypes from './fitnessClassReview.types'
 export * as FavoriteClassTypes from './favoriteClass.types'
-export * as ReviewTypes from './fitnessClassReview.types'
+export * as GymTypes from './gym.types'
 
 export interface Pagination {
   page: number

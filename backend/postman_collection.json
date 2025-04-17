@@ -701,6 +701,45 @@
             }
           ],
           "description": "Admin endpoints for managing instructors"
+        },
+        {
+          "name": "Gym Management",
+          "item": [
+            {
+              "name": "Create Gym",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Fitness Center\",\n    \"address\": \"123 Fitness Street, City\",\n    \"ownerId\": \"your-owner-id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/gyms",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "gyms"]
+                },
+                "description": "Create a new gym. Requires admin role. Owner ID is optional - if not provided, the current authenticated user will be set as the owner."
+              },
+              "response": []
+            }
+          ],
+          "description": "Admin endpoints for managing gyms"
         }
       ],
       "description": "Admin-only endpoints"
