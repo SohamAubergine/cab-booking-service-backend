@@ -30,3 +30,19 @@ export const createGym = catchAsync(async (req: Request, res: Response) => {
     })
   )
 })
+
+/**
+ * Get gyms with pagination and filtering
+ * @route GET /api/admin/gyms
+ * @access Admin
+ */
+export const getGyms = catchAsync(async (req: Request, res: Response) => {
+  const result = await GymService.getGyms(req.query)
+
+  return res.status(STATUS_CODES.SUCCESS.OK).json(
+    APIResponse.sendSuccess({
+      message: MESSAGES.RETRIEVE_SUCCESS('Gyms'),
+      data: result,
+    })
+  )
+})

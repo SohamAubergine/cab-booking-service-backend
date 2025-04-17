@@ -35,3 +35,58 @@ export interface GymResponse {
     role: string
   }
 }
+
+/**
+ * Interface for gym query parameters
+ */
+export interface GetGymsQueryParams {
+  /**
+   * Page number for pagination (1-based)
+   */
+  page?: number
+
+  /**
+   * Number of items per page
+   */
+  limit?: number
+
+  /**
+   * Filter gyms by name
+   */
+  name?: string
+
+  /**
+   * Filter gyms by address
+   */
+  address?: string
+
+  /**
+   * Filter gyms by owner ID
+   */
+  ownerId?: string
+}
+
+/**
+ * Interface for paginated gyms response
+ */
+export interface PaginatedGymsResponse {
+  /**
+   * Current page number
+   */
+  page: number
+
+  /**
+   * Number of items per page
+   */
+  limit: number
+
+  /**
+   * Total number of gyms matching the query
+   */
+  total: number
+
+  /**
+   * Array of gym data
+   */
+  data: GymResponse[]
+}

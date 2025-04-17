@@ -227,6 +227,15 @@ A Postman collection is included in the project root (`postman_collection.json`)
     - `address` - Gym address (required)
     - `ownerId` - ID of the gym owner (optional, defaults to the authenticated user)
   - Returns the created gym data
+- `GET /api/admin/gyms` - Get all gyms with pagination and filtering
+  - Requires admin role
+  - Query parameters:
+    - `page` - Page number (default: 1)
+    - `limit` - Items per page (default: 10, max: 100)
+    - `name` - Filter gyms by name (optional, case-insensitive)
+    - `address` - Filter gyms by address (optional, case-insensitive)
+    - `ownerId` - Filter gyms by owner ID (optional)
+  - Returns a paginated list of gyms with owner details
 
 ## Project Structure
 

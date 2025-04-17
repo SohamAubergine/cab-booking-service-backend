@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { getDashboardStats } from '../../controllers/dashboard.controller'
-import { catchAsync } from 'utils/wrapper'
+import { catchAsync } from '../../utils/wrapper'
 
 const router = Router()
 

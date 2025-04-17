@@ -1,9 +1,20 @@
 import { Router } from 'express'
-import { validate } from '../../middlewares/'
+import { validateRequest } from '../../middlewares/validation.middleware'
 import { GymSchema } from '../../schemas'
 import { GymController } from '../../controllers'
 
 const gymRouter = Router()
+
+/**
+ * @route GET /api/admin/gyms
+ * @desc Get all gyms with pagination and filtering
+ * @access Admin only
+ */
+gymRouter.get(
+  '/',
+  validateRequest({ query: GymSchema.getGymsSchema }),
+  GymController.getGyms
+)
 
 /**
  * @route POST /api/admin/gyms
@@ -12,7 +23,7 @@ const gymRouter = Router()
  */
 gymRouter.post(
   '/',
-  validate(GymSchema.createGymSchema),
+  validateRequest({ body: GymSchema.createGymSchema }),
   GymController.createGym
 )
 
