@@ -113,3 +113,38 @@ export const getGyms = async (
     data: gyms,
   }
 }
+
+/**
+ * Get a gym by ID
+ * @param gymId - ID of the gym to retrieve
+ * @returns The gym data or null if not found
+ */
+export const getGymById = async (
+  gymId: string
+): Promise<GymTypes.GymResponse> => {
+  const gym = await prisma.gym.findUnique({
+    where: {
+      id: gymId,
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  })
+
+  if (!gym) {
+    throw new APIError(
+      STATUS_CODES.CLIENT_ERROR.NOT_FOUND,
+      MESSAGES.NOT_FOUND('Gym'),
+      true
+    )
+  }
+
+  return gym
+}

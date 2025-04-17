@@ -17,6 +17,17 @@ gymRouter.get(
 )
 
 /**
+ * @route GET /api/admin/gyms/:gymId
+ * @desc Get a gym by ID
+ * @access Admin only
+ */
+gymRouter.get(
+  '/:gymId',
+  validateRequest({ params: GymSchema.gymIdSchema }),
+  GymController.getGymById
+)
+
+/**
  * @route POST /api/admin/gyms
  * @desc Create a new gym
  * @access Admin only

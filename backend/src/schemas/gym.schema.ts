@@ -39,3 +39,10 @@ export const getGymsSchema = z.object({
   address: z.string().optional(),
   ownerId: z.string().uuid('Owner ID must be a valid UUID').optional(),
 })
+
+/**
+ * Schema for validating gym ID in URL params
+ */
+export const gymIdSchema = z.object({
+  gymId: z.string().uuid('Gym ID must be a valid UUID'),
+})
