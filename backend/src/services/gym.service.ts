@@ -48,3 +48,68 @@ export const createGym = async (
 
   return gym
 }
+
+/**
+ * Get gyms with pagination and filtering
+ * @param params - Query parameters for filtering and pagination
+ * @returns Paginated list of gyms
+ */
+export const getGyms = async (
+  params: GymTypes.GetGymsQueryParams
+): Promise<GymTypes.PaginatedGymsResponse> => {
+  const { page = 1, limit = 10, name, address, ownerId } = params
+
+  // Calculate offset based on page and limit
+  const offset = (page - 1) * limit
+
+  // Build where clause based on filters
+  const where: any = {}
+
+  if (name) {
+    where.name = {
+      contains: name,
+      mode: 'insensitive', // Case insensitive search
+    }
+  }
+
+  if (address) {
+    where.address = {
+      contains: address,
+      mode: 'insensitive', // Case insensitive search
+    }
+  }
+
+  if (ownerId) {
+    where.ownerId = ownerId
+  }
+
+  // Get total count of matching gyms
+  const total = await prisma.gym.count({ where })
+
+  // Get paginated gyms
+  const gyms = await prisma.gym.findMany({
+    where,
+    take: limit,
+    skip: offset,
+    orderBy: {
+      createdAt: 'desc', // Most recent first
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  })
+
+  return {
+    page,
+    limit,
+    total,
+    data: gyms,
+  }
+}

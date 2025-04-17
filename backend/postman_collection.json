@@ -706,6 +706,60 @@
           "name": "Gym Management",
           "item": [
             {
+              "name": "Get All Gyms",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/gyms?page=1&limit=10&name=fitness",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "gyms"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number for pagination"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of items per page"
+                    },
+                    {
+                      "key": "name",
+                      "value": "fitness",
+                      "description": "Filter gyms by name (optional)",
+                      "disabled": false
+                    },
+                    {
+                      "key": "address",
+                      "value": "",
+                      "description": "Filter gyms by address (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "ownerId",
+                      "value": "",
+                      "description": "Filter gyms by owner ID (optional)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Get a list of all gyms with pagination and filtering. Requires admin role. Returns a paginated result with gym data including owner details."
+              },
+              "response": []
+            },
+            {
               "name": "Create Gym",
               "request": {
                 "auth": {
