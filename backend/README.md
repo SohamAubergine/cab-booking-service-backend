@@ -236,6 +236,12 @@ A Postman collection is included in the project root (`postman_collection.json`)
     - `address` - Filter gyms by address (optional, case-insensitive)
     - `ownerId` - Filter gyms by owner ID (optional)
   - Returns a paginated list of gyms with owner details
+- `GET /api/admin/gyms/:gymId` - Get a specific gym by ID
+  - Requires admin role
+  - URL parameters:
+    - `gymId` - ID of the gym to retrieve (UUID format)
+  - Returns detailed information about the gym including owner details
+  - Returns 404 error if the gym doesn't exist
 
 ## Project Structure
 

@@ -46,3 +46,29 @@ export const getGyms = catchAsync(async (req: Request, res: Response) => {
     })
   )
 })
+
+/**
+ * Get a gym by ID
+ * @route GET /api/admin/gyms/:gymId
+ * @access Admin
+ */
+export const getGymById = catchAsync(async (req: Request, res: Response) => {
+  const { gymId } = req.params
+
+  if (!gymId) {
+    return res.status(STATUS_CODES.CLIENT_ERROR.BAD_REQUEST).json(
+      APIResponse.sendError({
+        message: MESSAGES.REQUIRED('Gym ID'),
+      })
+    )
+  }
+
+  const gym = await GymService.getGymById(gymId)
+
+  return res.status(STATUS_CODES.SUCCESS.OK).json(
+    APIResponse.sendSuccess({
+      message: MESSAGES.RETRIEVE_SUCCESS('Gym'),
+      data: gym,
+    })
+  )
+})
