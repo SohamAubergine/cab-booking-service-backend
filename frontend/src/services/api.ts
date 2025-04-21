@@ -351,7 +351,20 @@ export const adminService = {
             id: `gym-${Date.now()}`, // Generate unique ID
             name: gymData.name,
             address: gymData.address,
+            latitude: gymData.latitude,
+            longitude: gymData.longitude,
             ownerId: gymData.ownerId || "current-user-id", // Use provided ownerId or default
+            // Optional owner data
+            owner: gymData.ownerId
+              ? {
+                  id: gymData.ownerId,
+                  name: "Mock Owner",
+                  email: "owner@example.com",
+                  role: "ADMIN" as any, // Cast to any to avoid type issues
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                }
+              : undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -407,16 +420,22 @@ export const adminService = {
               continue;
             }
 
+            // Generate random coordinates around New York City
+            const latitude = 40.7128 + (Math.random() - 0.5) * 0.1;
+            const longitude = -74.006 + (Math.random() - 0.5) * 0.1;
+
             mockGyms.push({
               id: `gym-${i}`,
               name: gymName,
               address: `${i} Gym Street, Fitness City`,
+              latitude: latitude,
+              longitude: longitude,
               ownerId: `user-${i}`,
               owner: {
                 id: `user-${i}`,
                 name: `Owner ${i}`,
                 email: `owner${i}@example.com`,
-                role: UserRole.ADMIN,
+                role: "ADMIN" as any, // Cast to any to avoid type issues
                 createdAt: createdDate.toISOString(),
                 updatedAt: createdDate.toISOString(),
               },

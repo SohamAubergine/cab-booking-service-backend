@@ -213,6 +213,8 @@ export interface Gym {
   id: string;
   name: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
   ownerId: string;
   owner?: User;
   createdAt?: string;
@@ -222,5 +224,7 @@ export interface Gym {
 export interface CreateGymRequest {
   name: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
   ownerId?: string;
 }

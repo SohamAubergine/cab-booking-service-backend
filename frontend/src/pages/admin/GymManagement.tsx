@@ -47,6 +47,7 @@ import {
   FormErrorMessage,
   Select,
   Avatar,
+  Divider,
 } from "@chakra-ui/react";
 import {
   FaSearch,
@@ -58,6 +59,7 @@ import {
   FaPlus,
   FaMapMarkerAlt,
   FaUserTie,
+  FaMapMarked,
 } from "react-icons/fa";
 import { adminService } from "../../services/api";
 import { User, Gym, CreateGymRequest, UserRole } from "../../types";
@@ -65,6 +67,7 @@ import ErrorDisplay from "../../components/ErrorDisplay";
 import * as toastUtils from "../../utils/toast";
 import { motion } from "framer-motion";
 import Pagination from "../../components/Pagination";
+import MapboxMap, { MapLocation } from "../../components/map/MapboxMap";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -109,6 +112,8 @@ const GymManagement = () => {
     name: "",
     address: "",
     ownerId: "",
+    latitude: undefined,
+    longitude: undefined,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,6 +121,15 @@ const GymManagement = () => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editGymId, setEditGymId] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(
+    null
+  );
+
+  // Add these state variables for map preview modal
+  const [isMapPreviewOpen, setIsMapPreviewOpen] = useState(false);
+  const [previewLocation, setPreviewLocation] = useState<MapLocation | null>(
+    null
+  );
 
   // Pagination
   const limit = 10;
@@ -214,7 +228,10 @@ const GymManagement = () => {
       name: "",
       address: "",
       ownerId: "",
+      latitude: undefined,
+      longitude: undefined,
     });
+    setSelectedLocation(null);
     setFormErrors({});
     setIsEditMode(false);
     setEditGymId(null);
@@ -240,6 +257,26 @@ const GymManagement = () => {
     }
   };
 
+  // Handle location selection from map
+  const handleLocationChange = (location: MapLocation) => {
+    setSelectedLocation(location);
+    setGymFormData((prev) => ({
+      ...prev,
+      latitude: location.lat,
+      longitude: location.lng,
+      address: location.address || prev.address,
+    }));
+
+    // Clear any address errors as we now have coordinates
+    if (formErrors.address) {
+      setFormErrors((prev) => {
+        const errors = { ...prev };
+        delete errors.address;
+        return errors;
+      });
+    }
+  };
+
   // Validate form before submission
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -248,8 +285,8 @@ const GymManagement = () => {
       errors.name = "Gym name is required";
     }
 
-    if (!gymFormData.address.trim()) {
-      errors.address = "Address is required";
+    if (!gymFormData.address.trim() && !selectedLocation) {
+      errors.address = "Address or map location is required";
     }
 
     setFormErrors(errors);
@@ -315,6 +352,18 @@ const GymManagement = () => {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to delete gym";
       toast(toastUtils.errorToast("Error", errorMessage));
+    }
+  };
+
+  // Add a function to open the map preview modal
+  const openMapPreview = (gym: Gym) => {
+    if (gym.latitude && gym.longitude) {
+      setPreviewLocation({
+        lat: gym.latitude,
+        lng: gym.longitude,
+        address: gym.address,
+      });
+      setIsMapPreviewOpen(true);
     }
   };
 
@@ -416,6 +465,7 @@ const GymManagement = () => {
                   <Tr>
                     <Th>Gym Name</Th>
                     <Th>Address</Th>
+                    <Th>Location</Th>
                     <Th>Owner</Th>
                     <Th>Created</Th>
                     <Th width="100px">Actions</Th>
@@ -432,6 +482,9 @@ const GymManagement = () => {
                             </Td>
                             <Td>
                               <Skeleton height="20px" width="200px" />
+                            </Td>
+                            <Td>
+                              <Skeleton height="20px" width="120px" />
                             </Td>
                             <Td>
                               <Skeleton height="20px" width="150px" />
@@ -457,6 +510,26 @@ const GymManagement = () => {
                               <Icon as={FaMapMarkerAlt} color="gray.500" />
                               <Text>{gym.address}</Text>
                             </HStack>
+                          </Td>
+                          <Td>
+                            {gym.latitude && gym.longitude ? (
+                              <HStack
+                                as="button"
+                                onClick={() => openMapPreview(gym)}
+                                _hover={{ color: "purple.600" }}
+                                transition="color 0.2s"
+                              >
+                                <Icon as={FaMapMarked} color="purple.500" />
+                                <Text fontSize="sm">
+                                  {gym.latitude.toFixed(4)},{" "}
+                                  {gym.longitude.toFixed(4)}
+                                </Text>
+                              </HStack>
+                            ) : (
+                              <Text color="gray.400" fontSize="sm">
+                                No coordinates
+                              </Text>
+                            )}
                           </Td>
                           <Td>
                             {gym.owner ? (
@@ -558,12 +631,38 @@ const GymManagement = () => {
                 name="address"
                 value={gymFormData.address}
                 onChange={handleInputChange}
-                placeholder="Enter gym address"
+                placeholder="Enter gym address or select on map"
               />
               {formErrors.address && (
                 <FormErrorMessage>{formErrors.address}</FormErrorMessage>
               )}
             </FormControl>
+
+            <FormControl mb={4}>
+              <FormLabel display="flex" alignItems="center">
+                <Icon as={FaMapMarked} mr={2} />
+                Location
+              </FormLabel>
+              <Text fontSize="sm" color="gray.500" mb={2}>
+                Click on the map or search to select a gym location
+              </Text>
+              <MapboxMap
+                initialLocation={selectedLocation || undefined}
+                onLocationChange={handleLocationChange}
+                height="300px"
+              />
+              {selectedLocation && (
+                <HStack mt={2} fontSize="sm" color="gray.600">
+                  <Icon as={FaMapMarkerAlt} color="purple.500" />
+                  <Text>
+                    Lat: {selectedLocation.lat.toFixed(6)}, Lng:{" "}
+                    {selectedLocation.lng.toFixed(6)}
+                  </Text>
+                </HStack>
+              )}
+            </FormControl>
+
+            <Divider my={4} />
 
             <FormControl mb={4}>
               <FormLabel>Owner</FormLabel>
@@ -630,6 +729,35 @@ const GymManagement = () => {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
+
+      {/* Map Preview Modal */}
+      <Modal
+        isOpen={isMapPreviewOpen}
+        onClose={() => setIsMapPreviewOpen(false)}
+        size="xl"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Location Preview</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {previewLocation && (
+              <>
+                <Text mb={4}>{previewLocation.address}</Text>
+                <MapboxMap
+                  initialLocation={previewLocation}
+                  height="400px"
+                  zoom={15}
+                  interactive={false}
+                />
+              </>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={() => setIsMapPreviewOpen(false)}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </MotionBox>
   );
 };
