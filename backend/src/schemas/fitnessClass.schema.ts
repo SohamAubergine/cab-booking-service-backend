@@ -2,6 +2,36 @@ import { z } from 'zod'
 import { MESSAGES } from '../utils/messages'
 
 /**
+ * Validation schema for gym ID parameter
+ */
+export const gymIdSchema = z.object({
+  gymId: z
+    .string()
+    .uuid({ message: MESSAGES.INVALID('Gym ID') })
+    .nonempty({ message: MESSAGES.REQUIRED('Gym ID') }),
+})
+
+/**
+ * Validation schema for getting fitness classes with pagination and filtering
+ */
+export const getFitnessClassesSchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10)),
+  name: z.string().optional(),
+  categoryId: z.string().uuid().optional(),
+  instructorId: z.string().uuid().optional(),
+  gymId: z.string().uuid().optional(),
+  startDateFrom: z.string().datetime().optional(),
+  startDateTo: z.string().datetime().optional(),
+})
+
+/**
  * Validation schema for creating a fitness class
  */
 export const createFitnessClassSchema = z
@@ -36,6 +66,11 @@ export const createFitnessClassSchema = z
       .int({ message: MESSAGES.DATA_TYPE('Capacity', 'an integer') })
       .positive({ message: MESSAGES.NOT_POSITIVE('Capacity') })
       .optional(),
+
+    gymId: z
+      .string()
+      .uuid({ message: MESSAGES.INVALID('Gym ID') })
+      .nonempty({ message: MESSAGES.REQUIRED('Gym ID') }),
   })
   .refine((data) => new Date(data.startsAt) < new Date(data.endsAt), {
     message: 'End time must be after start time',
@@ -76,6 +111,11 @@ export const updateFitnessClassSchema = z
       .number()
       .int({ message: MESSAGES.DATA_TYPE('Capacity', 'an integer') })
       .positive({ message: MESSAGES.NOT_POSITIVE('Capacity') })
+      .optional(),
+
+    gymId: z
+      .string()
+      .uuid({ message: MESSAGES.INVALID('Gym ID') })
       .optional(),
   })
   .refine(

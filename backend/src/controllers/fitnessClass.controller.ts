@@ -72,6 +72,12 @@ export const updateFitnessClass = catchAsync(
       }
     }
 
+    if (updateData.gymId) {
+      formattedData.gym = {
+        connect: { id: updateData.gymId },
+      }
+    }
+
     // Check for instructor conflicts if instructor or time is being changed
     if (
       (updateData.instructorId || updateData.startsAt || updateData.endsAt) &&
@@ -163,6 +169,11 @@ export const getAllFitnessClasses = catchAsync(
       filterConditions.instructorId = query.instructorId
     }
 
+    // Gym filter
+    if (query.gymId) {
+      filterConditions.gymId = query.gymId
+    }
+
     // Date range filters
     if (query.startDateFrom || query.startDateTo) {
       filterConditions.startsAt = {}
@@ -244,6 +255,11 @@ export const getAvailableFitnessClasses = catchAsync(
     // Instructor filter
     if (query.instructorId) {
       filterConditions.instructorId = query.instructorId
+    }
+
+    // Gym filter
+    if (query.gymId) {
+      filterConditions.gymId = query.gymId
     }
 
     // Additional date range filter (if provided)

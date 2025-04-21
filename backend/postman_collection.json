@@ -133,7 +133,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fitness-classes?page=1&limit=10&name=yoga",
+              "raw": "{{baseUrl}}/api/v1/fitness-classes?page=1&limit=10&name=yoga&gymId=",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "fitness-classes"],
               "query": [
@@ -162,6 +162,12 @@
                   "key": "instructorId",
                   "value": "",
                   "description": "Filter by instructor ID (optional)",
+                  "disabled": true
+                },
+                {
+                  "key": "gymId",
+                  "value": "",
+                  "description": "Filter by gym ID (optional)",
                   "disabled": true
                 },
                 {
@@ -524,7 +530,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/admin/fitness-classes?page=1&limit=10&name=yoga",
+                  "raw": "{{baseUrl}}/api/admin/fitness-classes?page=1&limit=10&name=yoga&gymId=",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "admin", "fitness-classes"],
                   "query": [
@@ -553,6 +559,12 @@
                       "key": "instructorId",
                       "value": "",
                       "description": "Filter by instructor ID (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "gymId",
+                      "value": "",
+                      "description": "Filter by gym ID (optional)",
                       "disabled": true
                     },
                     {
@@ -595,14 +607,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Yoga for Beginners\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"startsAt\": \"2024-07-15T10:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"capacity\": 25\n}"
+                  "raw": "{\n    \"name\": \"Yoga for Beginners\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"gymId\": \"your-gym-id\",\n    \"startsAt\": \"2024-07-15T10:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"capacity\": 25\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/api/admin/fitness-classes",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "admin", "fitness-classes"]
                 },
-                "description": "Create a new fitness class. Requires admin role. The start and end times must be valid ISO datetime strings, and the end time must be after the start time. Capacity defines the maximum number of participants that can book the class (defaults to 20 if not specified)."
+                "description": "Create a new fitness class. Requires admin role. The start and end times must be valid ISO datetime strings, and the end time must be after the start time. Capacity defines the maximum number of participants that can book the class (defaults to 20 if not specified). GymId is required to associate the class with a specific gym."
               },
               "response": []
             },
@@ -628,7 +640,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Updated Yoga Class\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"startsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T12:00:00.000Z\",\n    \"capacity\": 30\n}"
+                  "raw": "{\n    \"name\": \"Updated Yoga Class\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"gymId\": \"your-gym-id\",\n    \"startsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T12:00:00.000Z\",\n    \"capacity\": 30\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/api/admin/fitness-classes/:fitnessClassId",
@@ -647,7 +659,7 @@
                     }
                   ]
                 },
-                "description": "Update an existing fitness class. Requires admin role. All fields are optional - only provided fields will be updated. If updating time or instructor, checks are performed to avoid scheduling conflicts. Capacity must be a positive integer if specified."
+                "description": "Update an existing fitness class. Requires admin role. All fields are optional - only provided fields will be updated. If updating time or instructor, checks are performed to avoid scheduling conflicts. Capacity must be a positive integer if specified. You can also update the gym where the class is held."
               },
               "response": []
             },
@@ -1133,6 +1145,173 @@
         }
       ],
       "description": "Endpoints for users to review fitness classes they have attended"
+    },
+    {
+      "name": "Gym Management",
+      "item": [
+        {
+          "name": "Get Gym Fitness Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms/:gymId/fitness-classes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms", ":gymId", "fitness-classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filter by class name",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "Filter by category ID",
+                  "disabled": true
+                },
+                {
+                  "key": "instructorId",
+                  "value": "",
+                  "description": "Filter by instructor ID",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateFrom",
+                  "value": "",
+                  "description": "Filter classes starting after this date (ISO format)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateTo",
+                  "value": "",
+                  "description": "Filter classes starting before this date (ISO format)",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "gymId",
+                  "value": "your-gym-id",
+                  "description": "ID of the gym to get fitness classes for"
+                }
+              ]
+            },
+            "description": "Get all fitness classes for a specific gym. Requires authentication. Returns a paginated list of fitness classes for the gym. Supports various filters including class name, category, instructor, and date range."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gym Fitness Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Yoga for Beginners\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"startsAt\": \"2024-07-15T10:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"capacity\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms/:gymId/fitness-classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms", ":gymId", "fitness-classes"],
+              "variable": [
+                {
+                  "key": "gymId",
+                  "value": "your-gym-id",
+                  "description": "ID of the gym where the class will be held"
+                }
+              ]
+            },
+            "description": "Create a new fitness class at a specific gym. Requires authentication and gym ownership. Only gym owners can create classes for their own gyms. The gymId will be automatically taken from the URL parameter."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filter gyms by name",
+                  "disabled": true
+                },
+                {
+                  "key": "address",
+                  "value": "",
+                  "description": "Filter gyms by address",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get gyms owned by the current authenticated user with pagination and filtering. Requires authentication. Returns a paginated list of gyms."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for gym management and related operations"
     }
   ],
   "event": [

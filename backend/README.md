@@ -96,11 +96,12 @@ A Postman collection is included in the project root (`postman_collection.json`)
     - `name` - Filter by class name
     - `categoryId` - Filter by category ID
     - `instructorId` - Filter by instructor ID
+    - `gymId` - Filter by gym ID
     - `startDateFrom` - Filter classes starting after this date
     - `startDateTo` - Filter classes starting before this date
 - `GET /api/v1/fitness-classes/:fitnessClassId` - Get a single fitness class by ID
   - Returns detailed information about a specific fitness class
-  - Includes category and instructor details
+  - Includes category, instructor, and gym details
   - Shows capacity, current booking count, and available spots
 - `POST /api/v1/fitness-classes/:fitnessClassId` - Book a fitness class
   - Only allows booking classes that start more than 1 hour from now
@@ -181,6 +182,32 @@ A Postman collection is included in the project root (`postman_collection.json`)
   - Query parameters:
     - `page` - Page number (default: 1)
     - `limit` - Items per page (default: 10)
+
+#### Gym Management
+
+- `GET /api/v1/gyms/:gymId/fitness-classes` - Get all fitness classes for a specific gym
+  - Requires authentication
+  - Returns all fitness classes associated with the specified gym
+  - Supports filtering and pagination
+  - Query parameters:
+    - `page` - Page number (default: 1)
+    - `limit` - Items per page (default: 10)
+    - `name` - Filter by class name
+    - `categoryId` - Filter by category ID
+    - `instructorId` - Filter by instructor ID
+    - `startDateFrom` - Filter classes starting after this date
+    - `startDateTo` - Filter classes starting before this date
+- `POST /api/v1/gyms/:gymId/fitness-classes` - Create a fitness class at a specific gym
+  - Requires authentication and gym ownership
+  - Only gym owners can create classes for their gyms
+  - Request body parameters:
+    - `name` - Class name (required)
+    - `categoryId` - Category ID (required)
+    - `instructorId` - Instructor ID (required)
+    - `startsAt` - Start time of the class (ISO format, required)
+    - `endsAt` - End time of the class (ISO format, required)
+    - `capacity` - Maximum number of participants (optional, default: 20)
+  - gymId will be automatically set from the URL parameter
 
 #### Admin Endpoints (All require ADMIN role)
 
