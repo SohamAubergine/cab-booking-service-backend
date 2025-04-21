@@ -40,6 +40,7 @@ export const fetchFitnessClassesWithFiltersAndPagination = async (
       category: true,
       instructor: true,
       bookings: true,
+      gym: true,
     },
   })
 
@@ -156,6 +157,19 @@ export const createFitnessClass = async (
     )
   }
 
+  // Check if gym exists
+  const gym = await prisma.gym.findUnique({
+    where: { id: fitnessClassData.gymId },
+  })
+
+  if (!gym) {
+    throw new APIError(
+      STATUS_CODES.CLIENT_ERROR.NOT_FOUND,
+      MESSAGES.NOT_FOUND('Gym'),
+      true
+    )
+  }
+
   // Check for instructor time conflicts
   const hasConflicts = await checkInstructorConflicts(
     fitnessClassData.instructorId,
@@ -193,6 +207,7 @@ export const createFitnessClass = async (
       name: fitnessClassData.name,
       categoryId: fitnessClassData.categoryId,
       instructorId: fitnessClassData.instructorId,
+      gymId: fitnessClassData.gymId,
       startsAt,
       endsAt,
       ...(fitnessClassData.capacity !== undefined && {
@@ -202,6 +217,7 @@ export const createFitnessClass = async (
     include: {
       category: true,
       instructor: true,
+      gym: true,
     },
   })
 
@@ -273,6 +289,22 @@ export const updateFitnessClass = async (
     }
   }
 
+  // Handle gym check if provided
+  if (fitnessClassData.gym && 'connect' in fitnessClassData.gym) {
+    const gymId = (fitnessClassData.gym.connect as { id: string }).id
+    const gym = await prisma.gym.findUnique({
+      where: { id: gymId },
+    })
+
+    if (!gym) {
+      throw new APIError(
+        STATUS_CODES.CLIENT_ERROR.NOT_FOUND,
+        MESSAGES.NOT_FOUND('Gym'),
+        true
+      )
+    }
+  }
+
   // Update the fitness class
   const fitnessClass = await prisma.fitnessClass.update({
     where: { id: fitnessClassId },
@@ -281,6 +313,7 @@ export const updateFitnessClass = async (
       category: true,
       instructor: true,
       bookings: true,
+      gym: true,
     },
   })
 

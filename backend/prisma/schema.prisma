@@ -56,6 +56,7 @@ model FitnessClass {
   name       String
   categoryId String   @map("category_id")
   instructorId String @map("instructor_id")
+  gymId      String   @map("gym_id")
   startsAt   DateTime @map("starts_at")
   endsAt     DateTime @map("ends_at")
   capacity   Int      @default(20)
@@ -64,6 +65,7 @@ model FitnessClass {
 
   category   FitnessClassCategory @relation(fields: [categoryId], references: [id])
   instructor User                 @relation(fields: [instructorId], references: [id])
+  gym        Gym                  @relation(fields: [gymId], references: [id])
   bookings   FitnessClassBooking[]
   reviews    FitnessClassReview[]
   favorites  FavoriteClass[]
@@ -123,6 +125,7 @@ model Gym {
   updatedAt DateTime @updatedAt @map("updated_at")
   
   owner User @relation(fields: [ownerId], references: [id])
+  fitnessClasses FitnessClass[]
   @@map("gyms")
 }
 

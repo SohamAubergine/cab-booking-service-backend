@@ -3,7 +3,7 @@ import { catchAsync } from '../utils/wrapper'
 import { STATUS_CODES } from '../utils/statusCodes'
 import { APIResponse } from '../utils/responseGenerator'
 import { MESSAGES } from '../utils/messages'
-import * as GymService from '../services/gym.service'
+import { GymService } from '../services/'
 
 /**
  * Create a new gym

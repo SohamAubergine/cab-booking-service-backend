@@ -8,6 +8,7 @@ import userRouter from './user.routes'
 import instructorRouter from './instructor.routes'
 import reviewRouter from './review.routes'
 import favoriteRouter from './favorite.routes'
+import gymRouter from './gym.routes'
 
 const v1Router = Router()
 
@@ -37,5 +38,8 @@ v1Router.use('/reviews', reviewRouter)
 
 // Favorite routes
 v1Router.use('/favorites', favoriteRouter)
+
+// Gym routes
+v1Router.use('/gyms', gymRouter)
 
 export default v1Router
