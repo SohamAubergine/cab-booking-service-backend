@@ -153,10 +153,10 @@ const GymManagement = () => {
         throw new Error(response.message || "Failed to fetch gyms");
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch gyms";
-      setError(errorMessage);
-      toast(toastUtils.errorToast("Error", errorMessage));
+      // const errorMessage =
+      //   err instanceof Error ? err.message : "Failed to fetch gyms";
+      // setError(errorMessage);
+      // toast(toastUtils.errorToast("Error", errorMessage));
     } finally {
       setIsLoading(false);
     }
