@@ -462,6 +462,42 @@
             "description": "Get a list of fitness classes for which the authenticated user is the instructor. Requires INSTRUCTOR role. Returns a paginated result with class details including booking information."
           },
           "response": []
+        },
+        {
+          "name": "Get Instructor's Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/instructors/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "instructors", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get gyms for the authenticated instructor with pagination. Requires INSTRUCTOR role. Returns a paginated list of gyms with ownership details."
+          },
+          "response": []
         }
       ],
       "description": "Endpoints for instructors to manage their classes"
@@ -899,6 +935,42 @@
               ]
             },
             "description": "Get user details by ID. Users can only access their own profile unless they are admins. Returns user data without the password."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User's Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get gyms owned by the authenticated user with pagination. Returns a paginated list of gyms with ownership details."
           },
           "response": []
         }

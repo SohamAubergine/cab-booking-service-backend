@@ -213,6 +213,24 @@ export const userService = {
       throw handleApiError(error);
     }
   },
+
+  getUserGyms: async (
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<PaginatedResponse<Gym>>> => {
+    try {
+      const response = await api.get<ApiResponse<PaginatedResponse<Gym>>>(
+        "/users/me/gyms",
+        {
+          params: { page, limit },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error getting user gyms:", error);
+      throw handleApiError(error);
+    }
+  },
 };
 
 // Fitness Class Services (User)
@@ -653,8 +671,8 @@ export const adminService = {
 // Instructor Services
 export const instructorService = {
   getInstructorClasses: async (
-    page = 1,
-    limit = 10
+    page: number = 1,
+    limit: number = 10
   ): Promise<ApiResponse<PaginatedResponse<FitnessClass>>> => {
     try {
       const response = await api.get<
@@ -664,6 +682,24 @@ export const instructorService = {
       });
       return response.data;
     } catch (error) {
+      console.error("Error getting instructor classes:", error);
+      throw handleApiError(error);
+    }
+  },
+
+  getInstructorGyms: async (
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<PaginatedResponse<Gym & { classCount: number }>>> => {
+    try {
+      const response = await api.get<
+        ApiResponse<PaginatedResponse<Gym & { classCount: number }>>
+      >("/instructors/gyms", {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting instructor gyms:", error);
       throw handleApiError(error);
     }
   },

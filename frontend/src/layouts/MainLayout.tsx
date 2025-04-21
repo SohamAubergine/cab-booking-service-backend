@@ -38,11 +38,13 @@ import {
   FaSignOutAlt,
   FaUserFriends,
   FaHeart,
+  FaBuilding,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { useGyms } from "../context/GymContext";
 import { UserRole } from "../types";
 import { motion } from "framer-motion";
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -79,7 +81,10 @@ const Logo = () => {
 };
 
 // Navigation items based on user role
-const getNavItems = (role: UserRole | undefined): NavItem[] => {
+const getNavItems = (
+  role: UserRole | undefined,
+  hasGyms: boolean
+): NavItem[] => {
   // Define home route based on user role
   let homeRoute = "/";
 
@@ -107,25 +112,49 @@ const getNavItems = (role: UserRole | undefined): NavItem[] => {
     case UserRole.ADMIN:
       return [
         ...commonItems,
+        { label: "Dashboard", to: "/admin/dashboard", icon: <FaUserCircle /> },
         { label: "Manage Classes", to: "/admin/classes", icon: <FaDumbbell /> },
+        { label: "Manage Gyms", to: "/admin/gyms", icon: <FaBuilding /> },
       ];
     case UserRole.INSTRUCTOR:
+      // For instructors, always show the My Gyms button regardless of hasGyms
       return [
         ...commonItems,
+        {
+          label: "Dashboard",
+          to: "/instructor/dashboard",
+          icon: <FaUserCircle />,
+        },
         {
           label: "My Classes",
           to: "/instructor/classes",
           icon: <FaDumbbell />,
         },
+        {
+          label: "My Gyms",
+          to: "/my-gyms",
+          icon: <FaBuilding />,
+        },
       ];
     case UserRole.USER:
-      return [
+      const userItems = [
         ...commonItems,
+        { label: "Dashboard", to: "/user/dashboard", icon: <FaUserCircle /> },
         { label: "Browse Classes", to: "/classes", icon: <FaDumbbell /> },
         { label: "My Bookings", to: "/my-bookings", icon: <FaCalendarCheck /> },
         { label: "Favorites", to: "/favorites", icon: <FaHeart /> },
-        // { label: "Friends", to: "/friends", icon: <FaUserFriends /> },
       ];
+
+      // Only add gyms button if user has gyms
+      if (hasGyms) {
+        userItems.push({
+          label: "My Gyms",
+          to: "/my-gyms",
+          icon: <FaBuilding />,
+        });
+      }
+
+      return userItems;
     default:
       return commonItems;
   }
@@ -135,7 +164,14 @@ const MainLayout = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { colorMode, toggleColorMode } = useColorMode();
   const { user, logout } = useAuth();
+  const { userHasGyms, checkUserHasGyms } = useGyms();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      checkUserHasGyms();
+    }
+  }, [user]);
 
   // Animation variants
   const headerVariants = {
@@ -160,7 +196,7 @@ const MainLayout = () => {
     navigate("/login");
   };
 
-  const navItems = getNavItems(user?.role);
+  const navItems = getNavItems(user?.role, userHasGyms);
 
   // Theme colors
   const bgColor = useColorModeValue("white", "gray.800");

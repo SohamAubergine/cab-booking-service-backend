@@ -4,6 +4,7 @@ import { Pagination, AuthTypes } from "../types";
 import { APIError } from "../utils/customError";
 import { STATUS_CODES } from "../utils/statusCodes";
 import { MESSAGES } from "../utils/messages";
+import { GymResponse } from "../types/gym.types";
 
 /**
  * Fetch a single user by query
@@ -229,4 +230,128 @@ export const getUserRecentActivity = async (
 
   // Return limited number of activities
   return activities.slice(0, limit);
+};
+
+/**
+ * Get all gyms owned by a specific user with pagination
+ * @param userId ID of the user
+ * @param page Page number for pagination (1-based)
+ * @param limit Number of items per page
+ * @returns Paginated list of gyms owned by the user
+ */
+export const getUserGyms = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  data: GymResponse[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}> => {
+  // Ensure pagination parameters are valid
+  if (page < 1) page = 1;
+  if (limit < 1) limit = 10;
+  if (limit > 100) limit = 100;
+
+  // Get total count of user's gyms
+  const total = await prisma.gym.count({
+    where: { ownerId: userId },
+  });
+
+  // Calculate skip value for pagination
+  const skip = (page - 1) * limit;
+
+  // Calculate total pages
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  // Get gyms with pagination
+  const gyms = await prisma.gym.findMany({
+    where: { ownerId: userId },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "desc", // Newest first
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  return {
+    data: gyms,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+  };
+};
+
+/**
+ * Get all gyms where the user is an instructor with pagination
+ * @param instructorId ID of the instructor
+ * @param page Page number for pagination (1-based)
+ * @param limit Number of items per page
+ * @returns Paginated list of gyms where the user is an instructor
+ */
+export const getInstructorGyms = async (
+  instructorId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  data: GymResponse[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}> => {
+  // Ensure pagination parameters are valid
+  if (page < 1) page = 1;
+  if (limit < 1) limit = 10;
+  if (limit > 100) limit = 100;
+
+  // Get total count of instructor's gyms
+  const total = await prisma.gym.count({
+    where: { ownerId: instructorId },
+  });
+
+  // Calculate skip value for pagination
+  const skip = (page - 1) * limit;
+
+  // Calculate total pages
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  // Get gyms with pagination
+  const gyms = await prisma.gym.findMany({
+    where: { ownerId: instructorId },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "desc", // Newest first
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  return {
+    data: gyms,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+  };
 };

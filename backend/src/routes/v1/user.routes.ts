@@ -19,6 +19,13 @@ userRouter.get("/instructors", authenticate, UserController.getInstructors);
 userRouter.get("/activity", authenticate, UserController.getUserActivity);
 
 /**
+ * @route GET /api/v1/users/me/gyms
+ * @desc Get all gyms owned by the authenticated user
+ * @access Authenticated users
+ */
+userRouter.get("/me/gyms", authenticate, UserController.getUserGyms);
+
+/**
  * @route GET /api/v1/users/:userId
  * @desc Get a user by ID
  * @access Authenticated users (admin or the user themselves)
