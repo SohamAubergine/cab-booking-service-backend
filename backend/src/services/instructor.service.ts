@@ -1,9 +1,11 @@
 import prisma from "../config/db";
 import { FitnessClass } from "@prisma/client";
-import { Pagination, PaginatedResult, InstructorTypes } from "../types";
+import { Pagination, PaginatedResult } from "../types";
 import { APIError } from "../utils/customError";
 import { STATUS_CODES } from "../utils/statusCodes";
 import { MESSAGES } from "../utils/messages";
+import { InstructorTypes } from "../types";
+import { GymResponse } from "../types/gym.types";
 
 /**
  * Fetch all classes for which the user is an instructor

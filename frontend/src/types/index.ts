@@ -64,6 +64,7 @@ export interface FitnessClass {
   instructorId: string;
   instructor?: User;
   gymId: string;
+  gym?: Gym;
   startsAt: string;
   endsAt: string;
   capacity: number;
