@@ -78,6 +78,7 @@ import {
   UpdateFitnessClassRequest,
   User,
   UserRole,
+  Gym,
 } from "../../types";
 import Loading from "../../components/Loading";
 import { motion } from "framer-motion";
@@ -113,12 +114,10 @@ const fitnessClassSchema = z
     name: z.string().min(3, "Name must be at least 3 characters"),
     categoryId: z.string().min(1, "Category is required"),
     instructorId: z.string().min(1, "Instructor is required"),
+    gymId: z.string().min(1, "Gym is required"),
     startsAt: z.string().min(1, "Start time is required"),
     endsAt: z.string().min(1, "End time is required"),
-    capacity: z
-      .string()
-      .transform((val) => (val ? parseInt(val, 10) : undefined))
-      .optional(),
+    capacity: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -153,9 +152,9 @@ const fitnessClassSchema = z
   )
   .refine(
     (data) => {
-      if (data.capacity !== undefined) {
-        const capacity = data.capacity;
-        return capacity > 0;
+      if (data.capacity && data.capacity.trim() !== "") {
+        const capacityNum = parseInt(data.capacity, 10);
+        return !isNaN(capacityNum) && capacityNum > 0;
       }
       return true;
     },
@@ -167,13 +166,25 @@ const fitnessClassSchema = z
 
 type FitnessClassFormData = z.infer<typeof fitnessClassSchema>;
 
+interface FormattedFitnessClassData {
+  name: string;
+  categoryId: string;
+  instructorId: string;
+  gymId: string;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+}
+
 const ClassManagement = () => {
   const [classes, setClasses] = useState<FitnessClass[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [instructors, setInstructors] = useState<User[]>([]);
+  const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isInstructorsLoading, setIsInstructorsLoading] = useState(true);
+  const [isGymsLoading, setIsGymsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FitnessClassFilters>({
     page: 1,
@@ -297,6 +308,46 @@ const ClassManagement = () => {
     }
   };
 
+  const fetchGyms = async () => {
+    try {
+      setIsGymsLoading(true);
+      const response = await adminService.getAllGyms(1, 100);
+      console.log("Gyms response:", response);
+
+      if (response.success) {
+        const gymData = Array.isArray(response.data.data)
+          ? response.data.data
+          : response.data.data || [];
+
+        console.log("Gym data processed:", gymData);
+        setGyms(gymData);
+      } else {
+        console.error(
+          "Failed to fetch gyms - unsuccessful response:",
+          response
+        );
+        toast({
+          title: "Error",
+          description: "Failed to fetch gyms",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch gyms - exception:", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch gyms",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsGymsLoading(false);
+    }
+  };
+
   const fetchClasses = async () => {
     try {
       setIsLoading(true);
@@ -321,11 +372,13 @@ const ClassManagement = () => {
   useEffect(() => {
     console.log("Categories loaded:", categories);
     console.log("Instructors loaded:", instructors);
-  }, [categories, instructors]);
+    console.log("Gyms loaded:", gyms);
+  }, [categories, instructors, gyms]);
 
   useEffect(() => {
     fetchCategories();
     fetchInstructors();
+    fetchGyms();
   }, []);
 
   useEffect(() => {
@@ -338,9 +391,10 @@ const ClassManagement = () => {
       name: "",
       categoryId: "",
       instructorId: "",
+      gymId: "",
       startsAt: "",
       endsAt: "",
-      capacity: "",
+      capacity: "20", // Default capacity as string
     });
     openForm();
   };
@@ -350,6 +404,7 @@ const ClassManagement = () => {
     setValue("name", fitnessClass.name);
     setValue("categoryId", fitnessClass.categoryId);
     setValue("instructorId", fitnessClass.instructorId);
+    setValue("gymId", fitnessClass.gymId);
     setValue(
       "startsAt",
       new Date(fitnessClass.startsAt).toISOString().slice(0, 16)
@@ -429,12 +484,15 @@ const ClassManagement = () => {
         return;
       }
 
-      // Make sure we have a valid fully formatted ISO string
-      const formattedData = {
-        ...data,
+      // Convert form data to the expected API request format
+      const formattedData: CreateFitnessClassRequest = {
+        name: data.name,
+        categoryId: data.categoryId,
+        instructorId: data.instructorId,
+        gymId: data.gymId,
         startsAt: startsAtDate.toISOString(),
         endsAt: endsAtDate.toISOString(),
-        capacity: data.capacity,
+        capacity: data.capacity ? parseInt(data.capacity, 10) : 20,
       };
 
       console.log("Submitting class data:", formattedData);
@@ -443,7 +501,7 @@ const ClassManagement = () => {
         // Update existing class
         const response = await adminService.updateClass(
           currentClass.id,
-          formattedData
+          formattedData as UpdateFitnessClassRequest
         );
 
         if (response.success) {
@@ -833,6 +891,36 @@ const ClassManagement = () => {
                     )}
                   </FormControl>
                 </HStack>
+
+                <FormControl isInvalid={!!errors.gymId}>
+                  <FormLabel fontWeight="medium">Gym</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                      <Icon as={FaLayerGroup} color="gray.400" />
+                    </InputLeftElement>
+                    <Select
+                      placeholder="Select gym"
+                      {...register("gymId")}
+                      isDisabled={isGymsLoading}
+                      pl={10}
+                      focusBorderColor={`${accentColor}.400`}
+                    >
+                      {gyms.map((gym) => (
+                        <option key={gym.id} value={gym.id}>
+                          {gym.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </InputGroup>
+                  {errors.gymId && (
+                    <FormErrorMessage>{errors.gymId.message}</FormErrorMessage>
+                  )}
+                  {isGymsLoading && (
+                    <Text fontSize="sm" color="gray.500" mt={1}>
+                      Loading gyms...
+                    </Text>
+                  )}
+                </FormControl>
 
                 <Divider />
 

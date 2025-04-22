@@ -63,6 +63,7 @@ export interface FitnessClass {
   category?: Category;
   instructorId: string;
   instructor?: User;
+  gymId: string;
   startsAt: string;
   endsAt: string;
   capacity: number;
@@ -93,6 +94,7 @@ export interface CreateFitnessClassRequest {
   name: string;
   categoryId: string;
   instructorId: string;
+  gymId: string;
   startsAt: string;
   endsAt: string;
   capacity?: number;
@@ -102,6 +104,7 @@ export interface UpdateFitnessClassRequest {
   name?: string;
   categoryId?: string;
   instructorId?: string;
+  gymId?: string;
   startsAt?: string;
   endsAt?: string;
   capacity?: number;

@@ -533,6 +533,15 @@ export const adminService = {
     }
   },
 
+  // Get all gyms (alias for getGyms with all default parameters)
+  getAllGyms: async (
+    page: number = 1,
+    limit: number = 10,
+    name?: string
+  ): Promise<ApiResponse<PaginatedResponse<Gym>>> => {
+    return adminService.getGyms(page, limit, name);
+  },
+
   // User Management
   getAllUsers: async (
     page = 1,
