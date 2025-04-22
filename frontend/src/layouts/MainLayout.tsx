@@ -39,12 +39,14 @@ import {
   FaUserFriends,
   FaHeart,
   FaBuilding,
+  FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useGyms } from "../context/GymContext";
 import { UserRole } from "../types";
 import { motion } from "framer-motion";
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useEffect, useState } from "react";
+import RegisterGymModal from "../components/map/RegisterGymModal";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -167,6 +169,9 @@ const MainLayout = () => {
   const { userHasGyms, checkUserHasGyms } = useGyms();
   const navigate = useNavigate();
 
+  // Add state and disclosure for RegisterGymModal
+  const [isRegisterGymModalOpen, setIsRegisterGymModalOpen] = useState(false);
+
   useEffect(() => {
     if (user) {
       checkUserHasGyms();
@@ -194,6 +199,17 @@ const MainLayout = () => {
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  // Handle opening the register gym modal
+  const handleOpenRegisterGym = () => {
+    setIsRegisterGymModalOpen(true);
+  };
+
+  // Handle successful gym registration
+  const handleGymRegistrationSuccess = () => {
+    // Refresh the user's gyms to update the navigation
+    checkUserHasGyms();
   };
 
   const navItems = getNavItems(user?.role, userHasGyms);
@@ -370,6 +386,7 @@ const MainLayout = () => {
                   </Button>
                 </Link>
               ))}
+
               <Divider my={2} borderColor={borderColor} />
               <Link to="/profile" onClick={onClose}>
                 <Button
@@ -468,6 +485,13 @@ const MainLayout = () => {
           </Flex>
         </Container>
       </MotionBox>
+
+      {/* Add the RegisterGymModal component at the bottom of the layout */}
+      <RegisterGymModal
+        isOpen={isRegisterGymModalOpen}
+        onClose={() => setIsRegisterGymModalOpen(false)}
+        onSuccess={handleGymRegistrationSuccess}
+      />
     </Box>
   );
 };

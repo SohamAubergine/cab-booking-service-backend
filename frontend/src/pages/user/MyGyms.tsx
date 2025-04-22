@@ -16,14 +16,23 @@ import {
   VStack,
   Icon,
   useColorModeValue,
+  Container,
 } from "@chakra-ui/react";
-import { FaMapMarkerAlt, FaUser, FaBuilding } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaUser,
+  FaBuilding,
+  FaPlus,
+  FaDumbbell as FaGym,
+  FaChalkboardTeacher as FaGraduationCap,
+} from "react-icons/fa";
 import { Gym, PaginatedResponse, UserRole } from "../../types";
 import { userService } from "../../services/api";
 import Pagination from "../../components/Pagination";
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
+import RegisterGymModal from "../../components/map/RegisterGymModal";
 
 const MyGyms = () => {
   const [gyms, setGyms] = useState<Gym[]>([]);
@@ -45,6 +54,8 @@ const MyGyms = () => {
   const cardBorderColor = useColorModeValue("gray.200", "gray.600");
   const badgeBgColor = useColorModeValue("purple.100", "purple.800");
   const badgeColor = useColorModeValue("purple.800", "purple.100");
+  const headingColor = useColorModeValue("gray.700", "white");
+  const [isRegisterGymModalOpen, setIsRegisterGymModalOpen] = useState(false);
 
   useEffect(() => {
     fetchGyms(1);
@@ -82,23 +93,73 @@ const MyGyms = () => {
     fetchGyms(newPage);
   };
 
+  const handleOpenRegisterGym = () => {
+    setIsRegisterGymModalOpen(true);
+  };
+
+  const handleCloseRegisterGym = () => {
+    setIsRegisterGymModalOpen(false);
+  };
+
   if (loading) {
     return (
-      <Box>
-        <Heading mb={6}>My Gyms</Heading>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} boxShadow="md" height="100%">
-              <CardHeader>
-                <SkeletonText mt="4" noOfLines={2} spacing="4" />
-              </CardHeader>
-              <CardBody>
-                <SkeletonText mt="4" noOfLines={4} spacing="4" />
-              </CardBody>
-            </Card>
-          ))}
-        </SimpleGrid>
-      </Box>
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={6} align="stretch">
+          <Flex justify="space-between" align="center" wrap="wrap">
+            <Heading as="h1" size="xl" color={headingColor} mb={2}>
+              My Gyms
+            </Heading>
+
+            {user &&
+              (user.role === UserRole.USER ||
+                user.role === UserRole.INSTRUCTOR) && (
+                <Button
+                  variant="solid"
+                  colorScheme="teal"
+                  leftIcon={<FaPlus />}
+                  onClick={handleOpenRegisterGym}
+                  mb={2}
+                  size="md"
+                  _hover={{
+                    transform: "translateY(-2px)",
+                    boxShadow: "lg",
+                  }}
+                >
+                  Register Gym
+                </Button>
+              )}
+          </Flex>
+
+          {user && user.role === UserRole.USER && (
+            <Text color="gray.600" fontSize="lg">
+              <Icon as={FaGym} mr={2} />
+              These are the gyms you've registered. You can manage their details
+              and see associated activities.
+            </Text>
+          )}
+
+          {user && user.role === UserRole.INSTRUCTOR && (
+            <Text color="gray.600" fontSize="lg">
+              <Icon as={FaGraduationCap} mr={2} />
+              These are the gyms where you teach classes. You can see details
+              and manage your schedule.
+            </Text>
+          )}
+
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} boxShadow="md" height="100%">
+                <CardHeader>
+                  <SkeletonText mt="4" noOfLines={2} spacing="4" />
+                </CardHeader>
+                <CardBody>
+                  <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                </CardBody>
+              </Card>
+            ))}
+          </SimpleGrid>
+        </VStack>
+      </Container>
     );
   }
 
@@ -125,84 +186,134 @@ const MyGyms = () => {
   }
 
   return (
-    <Box>
-      <Heading mb={6}>My Gyms</Heading>
-      <Text mb={6}>
-        {user?.role === UserRole.INSTRUCTOR
-          ? "Below are the gyms where you're teaching classes."
-          : "Below are the gyms you own."}
-      </Text>
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={6} align="stretch">
+        <Flex justify="space-between" align="center" wrap="wrap">
+          <Heading as="h1" size="xl" color={headingColor} mb={2}>
+            My Gyms
+          </Heading>
 
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
-        {gyms.map((gym) => (
-          <Card
-            key={gym.id}
-            bg={cardBgColor}
-            borderWidth="1px"
-            borderColor={cardBorderColor}
-            borderRadius="lg"
-            overflow="hidden"
-            boxShadow="md"
-            transition="all 0.3s"
-            _hover={{ transform: "translateY(-5px)", boxShadow: "lg" }}
-          >
-            <CardHeader>
-              <Heading as="h3" size="md">
-                {gym.name}
-              </Heading>
-              <Badge
-                bg={badgeBgColor}
-                color={badgeColor}
-                fontSize="0.8em"
-                mt={2}
-                borderRadius="full"
-                px={2}
+          {user &&
+            (user.role === UserRole.USER ||
+              user.role === UserRole.INSTRUCTOR) && (
+              <Button
+                variant="solid"
+                colorScheme="teal"
+                leftIcon={<FaPlus />}
+                onClick={handleOpenRegisterGym}
+                mb={2}
+                size="md"
+                _hover={{
+                  transform: "translateY(-2px)",
+                  boxShadow: "lg",
+                }}
               >
-                {user?.role === UserRole.INSTRUCTOR
-                  ? "Teaching Location"
-                  : "Owner"}
-              </Badge>
-            </CardHeader>
+                Register Gym
+              </Button>
+            )}
+        </Flex>
 
-            <CardBody>
-              <VStack align="start" spacing={3}>
-                <Flex alignItems="center">
-                  <Icon as={FaMapMarkerAlt} mr={2} color="purple.500" />
-                  <Text>{gym.address}</Text>
-                </Flex>
+        {user && user.role === UserRole.USER && (
+          <Text color="gray.600" fontSize="lg">
+            <Icon as={FaGym} mr={2} />
+            These are the gyms you've registered. You can manage their details
+            and see associated activities.
+          </Text>
+        )}
 
-                {gym.owner && (
-                  <Flex alignItems="center">
-                    <Icon as={FaUser} mr={2} color="purple.500" />
-                    <Text>Owner: {gym.owner.name}</Text>
-                  </Flex>
-                )}
+        {user && user.role === UserRole.INSTRUCTOR && (
+          <Text color="gray.600" fontSize="lg">
+            <Icon as={FaGraduationCap} mr={2} />
+            These are the gyms where you teach classes. You can see details and
+            manage your schedule.
+          </Text>
+        )}
 
-                <Button
-                  as={Link}
-                  to={`/gyms/${gym.id}`}
-                  colorScheme="purple"
-                  variant="outline"
-                  size="sm"
-                  width="full"
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
+          {gyms.map((gym) => (
+            <Card
+              key={gym.id}
+              bg={cardBgColor}
+              borderWidth="1px"
+              borderColor={cardBorderColor}
+              borderRadius="lg"
+              overflow="hidden"
+              boxShadow="md"
+              transition="all 0.3s"
+              _hover={{ transform: "translateY(-5px)", boxShadow: "lg" }}
+            >
+              <CardHeader>
+                <Heading as="h3" size="md">
+                  {gym.name}
+                </Heading>
+                <Badge
+                  bg={badgeBgColor}
+                  color={badgeColor}
+                  fontSize="0.8em"
                   mt={2}
+                  borderRadius="full"
+                  px={2}
                 >
-                  View Details
-                </Button>
-              </VStack>
-            </CardBody>
-          </Card>
-        ))}
-      </SimpleGrid>
+                  {user?.role === UserRole.INSTRUCTOR
+                    ? "Teaching Location"
+                    : "Owner"}
+                </Badge>
+              </CardHeader>
 
-      {pagination.totalPages > 1 && (
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
-    </Box>
+              <CardBody>
+                <VStack align="start" spacing={3}>
+                  <Flex alignItems="center">
+                    <Icon as={FaMapMarkerAlt} mr={2} color="purple.500" />
+                    <Text>{gym.address}</Text>
+                  </Flex>
+
+                  {gym.owner && (
+                    <Flex alignItems="center">
+                      <Icon as={FaUser} mr={2} color="purple.500" />
+                      <Text>Owner: {gym.owner.name}</Text>
+                    </Flex>
+                  )}
+
+                  <Button
+                    as={Link}
+                    to={`/gyms/${gym.id}`}
+                    colorScheme="purple"
+                    variant="outline"
+                    size="sm"
+                    width="full"
+                    mt={2}
+                  >
+                    View Details
+                  </Button>
+                </VStack>
+              </CardBody>
+            </Card>
+          ))}
+        </SimpleGrid>
+
+        {pagination.totalPages > 1 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </VStack>
+
+      <RegisterGymModal
+        isOpen={isRegisterGymModalOpen}
+        onClose={handleCloseRegisterGym}
+        onSuccess={() => {
+          fetchGyms(1);
+          toast({
+            title: "Gym registered successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        }}
+      />
+    </Container>
   );
 };
 
