@@ -11,6 +11,17 @@ const gymRouter = Router()
 gymRouter.use(authenticate)
 
 /**
+ * @route GET /api/v1/gyms
+ * @desc Get all gyms with filtering and pagination
+ * @access Private
+ */
+gymRouter.get(
+  '/',
+  validateRequest({ query: GymSchema.getGymsSchema }),
+  GymController.getGyms
+)
+
+/**
  * @route POST /api/v1/gyms
  * @desc Register a new gym (user becomes the owner)
  * @access Private
