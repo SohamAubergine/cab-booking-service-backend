@@ -112,7 +112,7 @@ const getNavItems = (
     case UserRole.ADMIN:
       return [
         ...commonItems,
-        { label: "Dashboard", to: "/admin/dashboard", icon: <FaUserCircle /> },
+        // { label: "Dashboard", to: "/admin/dashboard", icon: <FaUserCircle /> },
         { label: "Manage Classes", to: "/admin/classes", icon: <FaDumbbell /> },
         { label: "Manage Gyms", to: "/admin/gyms", icon: <FaBuilding /> },
       ];
@@ -139,7 +139,7 @@ const getNavItems = (
     case UserRole.USER:
       const userItems = [
         ...commonItems,
-        { label: "Dashboard", to: "/user/dashboard", icon: <FaUserCircle /> },
+        // { label: "Dashboard", to: "/user/dashboard", icon: <FaUserCircle /> },
         { label: "Browse Classes", to: "/classes", icon: <FaDumbbell /> },
         { label: "My Bookings", to: "/my-bookings", icon: <FaCalendarCheck /> },
         { label: "Favorites", to: "/favorites", icon: <FaHeart /> },
