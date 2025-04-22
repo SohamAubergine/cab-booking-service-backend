@@ -26,7 +26,29 @@ export const getFitnessClassesSchema = z.object({
   name: z.string().optional(),
   categoryId: z.string().uuid().optional(),
   instructorId: z.string().uuid().optional(),
-  gymId: z.string().uuid().optional(),
+  gymId: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined
+      // If the value contains commas, split it to get an array of gym IDs
+      if (val.includes(',')) {
+        return val
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
+      }
+      // Otherwise, return the single ID
+      return val
+    })
+    .pipe(
+      z
+        .union([
+          z.string().uuid({ message: MESSAGES.INVALID('Gym ID') }),
+          z.array(z.string().uuid({ message: MESSAGES.INVALID('Gym ID') })),
+        ])
+        .optional()
+    ),
   startDateFrom: z.string().datetime().optional(),
   startDateTo: z.string().datetime().optional(),
 })
