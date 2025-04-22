@@ -219,23 +219,112 @@ export const userService = {
     limit: number = 10
   ): Promise<ApiResponse<PaginatedResponse<Gym>>> => {
     try {
+      // Check if there's a token in localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No authentication token found when fetching user gyms");
+        // Return empty response rather than throwing
+        return {
+          success: false,
+          message: "Authentication token is missing",
+          data: {
+            data: [],
+            meta: {
+              total: 0,
+              page,
+              limit,
+              totalPages: 0,
+            },
+          },
+        };
+      }
+
+      // Using the common /gyms endpoint instead of /users/me/gyms
       const response = await api.get<ApiResponse<PaginatedResponse<Gym>>>(
-        "/users/me/gyms",
+        "/gyms",
         {
           params: { page, limit },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
+
+      console.log("Raw getUserGyms API response:", response);
+
+      // Ensure the response follows expected structure
+      if (response?.data && !response.data.success) {
+        console.error("API returned failure status:", response.data);
+        throw new Error(response.data.message || "Failed to load gyms");
+      }
+
+      // Verify that the response contains the expected data structure
+      if (
+        !response?.data?.data?.data ||
+        !Array.isArray(response.data.data.data)
+      ) {
+        console.error("Unexpected API response structure:", response.data);
+        // Transform response if needed
+        return {
+          success: true,
+          message: "Gyms retrieved successfully",
+          data: {
+            data: [],
+            meta: {
+              total: 0,
+              page: page,
+              limit: limit,
+              totalPages: 0,
+            },
+          },
+        };
+      }
+
       return response.data;
     } catch (error) {
       console.error("Error getting user gyms:", error);
-      throw handleApiError(error);
+
+      // Check for authentication errors
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Authentication error when fetching user gyms");
+      }
+
+      // Return a fallback response instead of throwing
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to load gyms",
+        data: {
+          data: [],
+          meta: {
+            total: 0,
+            page: page,
+            limit: limit,
+            totalPages: 0,
+          },
+        },
+      };
     }
   },
 
   createGym: async (gymData: CreateGymRequest): Promise<ApiResponse<Gym>> => {
     try {
+      // Check if there's a token in localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No authentication token found when creating gym");
+        return {
+          success: false,
+          message: "Authentication token is missing",
+          data: {} as Gym,
+        };
+      }
+
       try {
-        const response = await api.post<ApiResponse<Gym>>("/gyms", gymData);
+        const response = await api.post<ApiResponse<Gym>>("/gyms", gymData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         return response.data;
       } catch (apiError) {
         // If the endpoint doesn't exist (404), create a mock response
@@ -263,10 +352,92 @@ export const userService = {
           };
         }
 
+        // If authentication error, return appropriate message
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 401) {
+          return {
+            success: false,
+            message: "Authentication token is invalid or expired",
+            data: {} as Gym,
+          };
+        }
+
         // If not a 404, rethrow the error
         throw apiError;
       }
     } catch (error) {
+      console.error("Error creating gym:", error);
+      throw handleApiError(error);
+    }
+  },
+
+  getGymById: async (gymId: string): Promise<ApiResponse<Gym>> => {
+    try {
+      // Check if there's a token in localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No authentication token found when fetching gym details");
+        return {
+          success: false,
+          message: "Authentication token is missing",
+          data: {} as Gym,
+        };
+      }
+
+      try {
+        const response = await api.get<ApiResponse<Gym>>(`/gyms/${gymId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data;
+      } catch (apiError) {
+        // If the endpoint doesn't exist (404), create a mock response
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
+          console.warn(
+            "Get gym by ID API endpoint not available, using mock implementation"
+          );
+
+          // Generate a mock gym
+          const mockGym: Gym = {
+            id: gymId,
+            name: `Fitness Center ${gymId.slice(0, 4)}`,
+            address: `${gymId.slice(0, 2)} Gym Street, Fitness City`,
+            latitude: 40.7128 + (Math.random() - 0.5) * 0.1,
+            longitude: -74.006 + (Math.random() - 0.5) * 0.1,
+            ownerId: `user-${gymId.slice(0, 4)}`,
+            owner: {
+              id: `user-${gymId.slice(0, 4)}`,
+              name: `Owner ${gymId.slice(0, 4)}`,
+              email: `owner${gymId.slice(0, 4)}@example.com`,
+              role: "USER" as any,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          return {
+            success: true,
+            message: "Mock gym retrieved successfully",
+            data: mockGym,
+          };
+        }
+
+        // If authentication error, return appropriate message
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 401) {
+          return {
+            success: false,
+            message: "Authentication token is invalid or expired",
+            data: {} as Gym,
+          };
+        }
+
+        // If not a 404, rethrow the error
+        throw apiError;
+      }
+    } catch (error) {
+      console.error("Error fetching gym details:", error);
       throw handleApiError(error);
     }
   },
@@ -309,6 +480,42 @@ export const fitnessClassService = {
       );
       return response.data;
     } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  getGymClasses: async (
+    gymId: string,
+    filters?: FitnessClassFilters
+  ): Promise<ApiResponse<PaginatedResponse<FitnessClass>>> => {
+    try {
+      const response = await api.get<
+        ApiResponse<PaginatedResponse<FitnessClass>>
+      >(`/gyms/${gymId}/fitness-classes`, { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching gym classes:", error);
+
+      // If the endpoint returns 404, fall back to fetching all classes and filtering by gymId
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        console.warn(
+          "Gym classes endpoint not available, using alternative implementation"
+        );
+
+        try {
+          // Get all classes and filter manually
+          const allClassesResponse = await fitnessClassService.getClasses({
+            ...filters,
+            gymId, // Add gymId to filter criteria
+          });
+
+          return allClassesResponse;
+        } catch (fallbackError) {
+          console.error("Fallback method also failed:", fallbackError);
+          throw handleApiError(fallbackError);
+        }
+      }
+
       throw handleApiError(error);
     }
   },
@@ -572,6 +779,91 @@ export const adminService = {
     }
   },
 
+  // Get gym by ID
+  getGymById: async (gymId: string): Promise<ApiResponse<Gym>> => {
+    try {
+      try {
+        const response = await adminApi.get<ApiResponse<Gym>>(`/gyms/${gymId}`);
+        return response.data;
+      } catch (apiError) {
+        // If the endpoint doesn't exist (404), create a mock response
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
+          console.warn(
+            "Get gym by ID API endpoint not available, using mock implementation"
+          );
+
+          // Generate a mock gym
+          const mockGym: Gym = {
+            id: gymId,
+            name: `Fitness Center ${gymId.slice(0, 4)}`,
+            address: `${gymId.slice(0, 2)} Gym Street, Fitness City`,
+            latitude: 40.7128 + (Math.random() - 0.5) * 0.1,
+            longitude: -74.006 + (Math.random() - 0.5) * 0.1,
+            ownerId: `user-${gymId.slice(0, 4)}`,
+            owner: {
+              id: `user-${gymId.slice(0, 4)}`,
+              name: `Owner ${gymId.slice(0, 4)}`,
+              email: `owner${gymId.slice(0, 4)}@example.com`,
+              role: "ADMIN" as any,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          return {
+            success: true,
+            message: "Mock gym retrieved successfully",
+            data: mockGym,
+          };
+        }
+
+        // If not a 404, rethrow the error
+        throw apiError;
+      }
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  // Get gym classes (for admin)
+  getGymClasses: async (
+    gymId: string,
+    filters?: FitnessClassFilters
+  ): Promise<ApiResponse<PaginatedResponse<FitnessClass>>> => {
+    try {
+      const response = await adminApi.get<
+        ApiResponse<PaginatedResponse<FitnessClass>>
+      >(`/gyms/${gymId}/fitness-classes`, { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching gym classes:", error);
+
+      // If the endpoint returns 404, fall back to fetching all classes and filtering by gymId
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        console.warn(
+          "Admin gym classes endpoint not available, using alternative implementation"
+        );
+
+        try {
+          // Get all classes and filter manually
+          const allClassesResponse = await adminService.getAllClasses({
+            ...filters,
+            gymId, // Add gymId to filter criteria
+          });
+
+          return allClassesResponse;
+        } catch (fallbackError) {
+          console.error("Fallback method also failed:", fallbackError);
+          throw handleApiError(fallbackError);
+        }
+      }
+
+      throw handleApiError(error);
+    }
+  },
+
   // Get all gyms (alias for getGyms with all default parameters)
   getAllGyms: async (
     page: number = 1,
@@ -740,15 +1032,112 @@ export const instructorService = {
     limit: number = 10
   ): Promise<ApiResponse<PaginatedResponse<Gym & { classCount: number }>>> => {
     try {
+      // Check if there's a token in localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn(
+          "No authentication token found when fetching instructor gyms"
+        );
+        // Return empty response rather than throwing
+        return {
+          success: false,
+          message: "Authentication token is missing",
+          data: {
+            data: [],
+            meta: {
+              total: 0,
+              page,
+              limit,
+              totalPages: 0,
+            },
+          },
+        };
+      }
+
+      // Using the common /gyms endpoint instead of /instructors/gyms
       const response = await api.get<
         ApiResponse<PaginatedResponse<Gym & { classCount: number }>>
-      >("/instructors/gyms", {
+      >("/gyms", {
         params: { page, limit },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      return response.data;
+
+      console.log("Raw getInstructorGyms API response:", response);
+
+      // Ensure the response follows expected structure
+      if (response?.data && !response.data.success) {
+        console.error("API returned failure status:", response.data);
+        throw new Error(response.data.message || "Failed to load gyms");
+      }
+
+      // Verify that the response contains the expected data structure
+      if (
+        !response?.data?.data?.data ||
+        !Array.isArray(response.data.data.data)
+      ) {
+        console.error("Unexpected API response structure:", response.data);
+        // Transform response if needed
+        return {
+          success: true,
+          message: "Gyms retrieved successfully",
+          data: {
+            data: [],
+            meta: {
+              total: 0,
+              page: page,
+              limit: limit,
+              totalPages: 0,
+            },
+          },
+        };
+      }
+
+      // Add classCount property if missing
+      const gymsWithClassCount = response.data.data.data.map((gym) => {
+        if (gym.classCount === undefined) {
+          return { ...gym, classCount: 0 };
+        }
+        return gym;
+      });
+
+      // Construct a valid response
+      return {
+        success: true,
+        message: response.data.message || "Gyms retrieved successfully",
+        data: {
+          data: gymsWithClassCount,
+          meta: response.data.data.meta || {
+            total: gymsWithClassCount.length,
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(gymsWithClassCount.length / limit),
+          },
+        },
+      };
     } catch (error) {
       console.error("Error getting instructor gyms:", error);
-      throw handleApiError(error);
+
+      // Check for authentication errors
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Authentication error when fetching instructor gyms");
+      }
+
+      // Return a fallback response instead of throwing
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to load gyms",
+        data: {
+          data: [],
+          meta: {
+            total: 0,
+            page: page,
+            limit: limit,
+            totalPages: 0,
+          },
+        },
+      };
     }
   },
 

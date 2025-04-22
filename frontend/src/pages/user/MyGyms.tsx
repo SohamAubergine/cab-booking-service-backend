@@ -84,24 +84,70 @@ const MyGyms = () => {
 
       console.log("API response:", response);
 
+      // Check for authentication issues
+      if (!response.success && response.message.includes("Authentication")) {
+        console.error("Authentication error:", response.message);
+        setError("Authentication error. Please log in again.");
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to view your gyms.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
       if (!response.success) {
         throw new Error(response.message || "Failed to load gyms");
       }
 
+      // Log the structure of the response data to debug
+      console.log("Response data structure:", {
+        hasData: !!response.data,
+        dataType: typeof response.data,
+        hasMeta: !!response.data?.meta,
+        hasDataArray: Array.isArray(response.data?.data),
+        dataLength: response.data?.data?.length || 0,
+      });
+
+      // Handle potential response structure issues
       const paginatedData = response.data as PaginatedResponse<Gym>;
 
-      setGyms(paginatedData.data);
+      // Ensure we have a valid data array
+      const gymData = Array.isArray(paginatedData.data)
+        ? paginatedData.data
+        : [];
+
+      // Ensure we have valid meta data
+      const metaData = paginatedData.meta || {
+        total: gymData.length,
+        page: page,
+        limit: 9,
+        totalPages: Math.ceil(gymData.length / 9),
+      };
+
+      setGyms(gymData);
       setPagination({
-        currentPage: paginatedData.meta.page,
-        totalPages: paginatedData.meta.totalPages,
-        totalItems: paginatedData.meta.total,
+        currentPage: metaData.page,
+        totalPages: metaData.totalPages,
+        totalItems: metaData.total,
       });
+
+      // If we reached here but have no gyms, log a warning
+      if (gymData.length === 0) {
+        console.warn("No gyms found in response");
+      }
     } catch (err) {
       console.error("Error fetching gyms:", err);
-      setError("Failed to load gyms. Please try again.");
+
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load gyms";
+      setError(errorMessage);
+
       toast({
         title: "Error",
-        description: "Failed to load gyms. Please try again.",
+        description: errorMessage,
         status: "error",
         duration: 5000,
         isClosable: true,

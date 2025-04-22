@@ -136,6 +136,19 @@ const RegisterGymModal = ({
 
     setIsSubmitting(true);
     try {
+      // Check if there's a token in localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast(
+          toastUtils.errorToast(
+            "Error",
+            "Authentication token is missing. Please login again."
+          )
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       // We're using the userService to create a gym
       // The API will automatically assign the current user as owner
       const response = await userService.createGym(formData);
