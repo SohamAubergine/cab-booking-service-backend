@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { validateRequest } from '../../middlewares/validation.middleware'
-import { FitnessClassSchema } from '../../schemas'
-import { FitnessClassController } from '../../controllers'
+import { FitnessClassSchema, GymSchema } from '../../schemas'
+import { FitnessClassController, GymController } from '../../controllers'
 import { authenticate } from '../../middlewares/auth.middleware'
 import { isGymOwner } from '../../middlewares/gym.middleware'
 
@@ -9,6 +9,17 @@ const gymRouter = Router()
 
 // Apply authentication to all gym routes
 gymRouter.use(authenticate)
+
+/**
+ * @route POST /api/v1/gyms
+ * @desc Register a new gym (user becomes the owner)
+ * @access Private
+ */
+gymRouter.post(
+  '/',
+  validateRequest({ body: GymSchema.createGymSchema }),
+  GymController.createGym
+)
 
 /**
  * @route POST /api/v1/gyms/:gymId/fitness-classes
