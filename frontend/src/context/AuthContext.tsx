@@ -5,7 +5,13 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { LoginRequest, RegisterRequest, User, AuthResponse } from "../types";
+import {
+  LoginRequest,
+  RegisterRequest,
+  User,
+  AuthResponse,
+  UserRole,
+} from "../types";
 import { authService } from "../services/api";
 
 interface AuthContextType {
@@ -39,14 +45,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Validate that a user object has a valid role
+  const validateUserRole = (user: User): boolean => {
+    return Object.values(UserRole).includes(user.role);
+  };
+
+  // Process and store user data
+  const processAndStoreUser = (userData: User, authToken: string) => {
+    if (!validateUserRole(userData)) {
+      console.error("Invalid user role detected:", userData.role);
+      console.log("Valid roles are:", Object.values(UserRole));
+      // Ensure the role is one of the valid enum values
+      userData.role = userData.role as UserRole;
+    }
+
+    setUser(userData);
+    setToken(authToken);
+    localStorage.setItem("token", authToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    console.log("User authenticated with role:", userData.role);
+  };
+
   useEffect(() => {
     // Check if user is already logged in
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+
+        if (validateUserRole(parsedUser)) {
+          setToken(storedToken);
+          setUser(parsedUser);
+          console.log(
+            "Restored authentication for user with role:",
+            parsedUser.role
+          );
+        } else {
+          console.error("Invalid user role in stored data:", parsedUser.role);
+          // Force logout if stored role is invalid
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
+      } catch (err) {
+        console.error("Error parsing stored user data:", err);
+        localStorage.removeItem("user");
+      }
     }
 
     setIsLoading(false);
@@ -60,10 +106,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (response.success && response.data) {
         const { user, token } = response.data;
-        setUser(user);
-        setToken(token);
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
+        processAndStoreUser(user, token);
         return { user, token };
       } else {
         throw new Error(response.message || "Login failed");

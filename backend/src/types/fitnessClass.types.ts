@@ -26,6 +26,16 @@ export interface CreateFitnessClassRequest {
    * End time of the class (ISO format)
    */
   endsAt: string
+
+  /**
+   * Maximum capacity of the class
+   */
+  capacity?: number
+
+  /**
+   * ID of the gym where the class will be held
+   */
+  gymId: string
 }
 
 /**
@@ -36,8 +46,10 @@ export interface FitnessClassResponse {
   name: string
   categoryId: string
   instructorId: string
+  gymId: string
   startsAt: Date
   endsAt: Date
+  capacity: number
   createdAt: Date
   updatedAt: Date
 
@@ -53,6 +65,13 @@ export interface FitnessClassResponse {
     name: string
     email: string
     role: string
+  }
+
+  gym?: {
+    id: string
+    name: string
+    address: string
+    ownerId: string
   }
 
   bookings?: Array<{
@@ -105,4 +124,9 @@ export interface FitnessClassQueryParams extends FitnessClassFilters {
    * Number of items per page
    */
   limit?: string
+
+  /**
+   * ID of the gym where the class will be held
+   */
+  gymId?: string
 }

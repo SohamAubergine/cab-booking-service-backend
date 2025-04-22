@@ -76,25 +76,34 @@ const AuthLayout = () => {
   return (
     <MotionBox
       minHeight="100vh"
+      height="100%"
       bg={bgColor}
       backgroundImage={bgPattern}
       backgroundSize={bgSize}
+      backgroundAttachment="fixed"
+      overflowY="auto"
+      display="flex"
+      flexDirection="column"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      <Container maxW="container.xl" py={5}>
+      <Container
+        maxW="container.xl"
+        py={5}
+        flex="1"
+        display="flex"
+        flexDirection="column"
+      >
         <MotionFlex
           justify="space-between"
           align="center"
           mb={10}
           variants={itemVariants}
         >
-          <Link to="/">
-            <Box py={2}>
-              <Logo />
-            </Box>
-          </Link>
+          <Box py={2}>
+            <Logo />
+          </Box>
           <MotionIconButton
             aria-label={`Toggle ${
               colorMode === "light" ? "Dark" : "Light"
@@ -114,6 +123,11 @@ const AuthLayout = () => {
           py={{ base: 8, md: 12 }}
           mx="auto"
           variants={itemVariants}
+          flex="1"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          width="100%"
         >
           {/* Outlet for auth pages content */}
           <Outlet />
@@ -121,7 +135,7 @@ const AuthLayout = () => {
 
         <MotionBox
           as="footer"
-          mt={20}
+          mt="auto"
           textAlign="center"
           py={6}
           variants={itemVariants}

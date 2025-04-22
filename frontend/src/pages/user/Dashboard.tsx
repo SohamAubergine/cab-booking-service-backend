@@ -126,15 +126,15 @@ const UserDashboard = () => {
         setCompletedClasses(completed);
 
         // Calculate simple fitness score based on activity (just a demo calculation)
-        const score = Math.min(100, 50 + completed * 5);
-        setFitnessScore(score);
+        // const score = Math.min(100, 50 + completed * 5);
+        setFitnessScore(0);
       }
     } catch (error) {
       console.error("Error fetching user stats:", error);
       // Set default values
       setUpcomingClasses(0);
       setCompletedClasses(0);
-      setFitnessScore(50);
+      setFitnessScore(0);
     } finally {
       setIsStatsLoading(false);
     }
@@ -251,7 +251,7 @@ const UserDashboard = () => {
             variant="outline"
             colorScheme="purple"
           >
-            View Histor
+            View History
           </Button>
         </Stat>
 
@@ -303,7 +303,7 @@ const UserDashboard = () => {
           >
             <CardHeader pb={0}>
               <Heading size="md" mb={2} color={headingColor}>
-                Recommended Classes
+                Recommended Classes (coming soon)
               </Heading>
               <Text fontSize="sm" color={textColor}>
                 Based on your previous activities

@@ -63,10 +63,14 @@ export interface FitnessClass {
   category?: Category;
   instructorId: string;
   instructor?: User;
+  gymId: string;
+  gym?: Gym;
   startsAt: string;
   endsAt: string;
+  capacity: number;
   createdAt: string;
   updatedAt: string;
+  bookings?: Booking[];
 }
 
 export interface Category {
@@ -91,16 +95,20 @@ export interface CreateFitnessClassRequest {
   name: string;
   categoryId: string;
   instructorId: string;
+  gymId: string;
   startsAt: string;
   endsAt: string;
+  capacity?: number;
 }
 
 export interface UpdateFitnessClassRequest {
   name?: string;
   categoryId?: string;
   instructorId?: string;
+  gymId?: string;
   startsAt?: string;
   endsAt?: string;
+  capacity?: number;
 }
 
 // Booking Types
@@ -163,4 +171,64 @@ export interface FriendshipFilters {
   status?: FriendshipStatus;
   page?: number;
   limit?: number;
+}
+
+// Review Types
+export interface CreateReviewRequest {
+  fitnessClassId: string;
+  rating: number; // Rating between 1-5 stars
+  feedback?: string; // Optional feedback text
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  feedback: string | null;
+  userId: string;
+  fitnessClassId: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    name: string;
+  };
+  fitnessClass?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface ClassRatingSummary {
+  fitnessClassId: string;
+  className: string;
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: {
+    oneStar: number;
+    twoStars: number;
+    threeStars: number;
+    fourStars: number;
+    fiveStars: number;
+  };
+}
+
+// Gym Types
+export interface Gym {
+  id: string;
+  name: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  ownerId: string;
+  owner?: User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateGymRequest {
+  name: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  ownerId?: string;
 }

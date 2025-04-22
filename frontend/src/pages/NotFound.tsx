@@ -25,13 +25,22 @@ const NotFound = () => {
   const buttonHoverBgGradient = "linear(to-r, purple.700, pink.600)";
 
   return (
-    <Container centerContent py={20} maxW="container.md">
+    <Container 
+      centerContent 
+      py={20} 
+      maxW="container.md"
+      minH="calc(100vh - 200px)" 
+      display="flex" 
+      flexDirection="column" 
+      justifyContent="center"
+    >
       <MotionVStack
         spacing={8}
         textAlign="center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
+        width="100%"
       >
         <MotionImage
           src="https://img.icons8.com/fluency/240/null/error-cloud.png"

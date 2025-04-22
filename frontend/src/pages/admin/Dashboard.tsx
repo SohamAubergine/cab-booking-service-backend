@@ -11,7 +11,6 @@ import {
   Flex,
   Icon,
   useColorModeValue,
-  VStack,
   HStack,
   Button,
   Card,
@@ -27,37 +26,33 @@ import {
   TableContainer,
   Avatar,
   Select,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Divider,
   Skeleton,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import {
   FaUsers,
   FaDumbbell,
   FaChartLine,
   FaMoneyBillWave,
-  FaCalendarAlt,
-  FaCog,
-  FaEllipsisV,
-  FaExclamationCircle,
-  FaCheckCircle,
-  FaPencilAlt,
-  FaStar,
-  FaUsersCog,
-  FaClipboardList,
-  FaBell,
-  FaExclamationTriangle,
   FaSync,
+  FaBuilding,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { Link as RouterLink } from "react-router-dom";
 import { adminService } from "../../services/api";
-import { User, FitnessClass } from "../../types";
+import { User, FitnessClass, CreateGymRequest } from "../../types";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import * as toastUtils from "../../utils/toast";
 
@@ -87,13 +82,20 @@ const itemVariants = {
   },
 };
 
+// Extended FitnessClass type with _count property for admin dashboard
+interface ExtendedFitnessClass extends FitnessClass {
+  _count?: {
+    bookings: number;
+  };
+}
+
 interface DashboardStats {
   totalUsers: number;
   activeClasses: number;
   revenue: number;
   growthRate: number;
   recentUsers: User[];
-  popularClasses: FitnessClass[];
+  popularClasses: ExtendedFitnessClass[];
 }
 
 const AdminDashboard = () => {
@@ -101,6 +103,18 @@ const AdminDashboard = () => {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Create Gym Modal State
+  const [isCreateGymModalOpen, setIsCreateGymModalOpen] = useState(false);
+  const [gymFormData, setGymFormData] = useState<CreateGymRequest>({
+    name: "",
+    address: "",
+    ownerId: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userOptions, setUserOptions] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
   const [dashboardData, setDashboardData] = useState<DashboardStats>({
     totalUsers: 0,
     activeClasses: 0,
@@ -116,32 +130,8 @@ const AdminDashboard = () => {
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headingColor = useColorModeValue("gray.800", "white");
   const statBg = useColorModeValue("purple.50", "purple.900");
-  const tableBg = useColorModeValue("white", "gray.800");
   const tableHeaderBg = useColorModeValue("gray.50", "gray.700");
   const tableRowHoverBg = useColorModeValue("gray.50", "gray.700");
-  const greenBg = useColorModeValue("green.50", "green.900");
-  const redBg = useColorModeValue("red.50", "red.900");
-  const yellowBg = useColorModeValue("yellow.50", "yellow.900");
-  const buttonBgGradient = "linear(to-r, purple.600, pink.500)";
-  const buttonHoverBgGradient = "linear(to-r, purple.700, pink.600)";
-
-  // Issues that need attention (static for now)
-  const issuesNeedingAttention = [
-    {
-      id: 1,
-      title: "Payment System Error",
-      description: "Multiple users reporting payment failures",
-      priority: "High",
-      reported: "Aug 14, 2023",
-    },
-    {
-      id: 2,
-      title: "Booking System Lag",
-      description: "System slow during peak hours",
-      priority: "Medium",
-      reported: "Aug 13, 2023",
-    },
-  ];
 
   useEffect(() => {
     fetchDashboardStats();
@@ -162,88 +152,6 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         console.warn("Using mock data - API endpoint not implemented", err);
-
-        // Fallback to mock data if API call fails
-        // In a production environment, you'd want to show the error instead
-        setTimeout(() => {
-          setDashboardData({
-            totalUsers: 235,
-            activeClasses: 21,
-            revenue: 12850,
-            growthRate: 18,
-            recentUsers: [
-              {
-                id: "1",
-                name: "John Doe",
-                email: "john.doe@example.com",
-                role: "INSTRUCTOR",
-                createdAt: new Date("2023-08-15").toISOString(),
-              },
-              {
-                id: "2",
-                name: "Jane Smith",
-                email: "jane.smith@example.com",
-                role: "USER",
-                createdAt: new Date("2023-08-10").toISOString(),
-              },
-              {
-                id: "3",
-                name: "Mike Johnson",
-                email: "mike.j@example.com",
-                role: "USER",
-                createdAt: new Date("2023-08-08").toISOString(),
-              },
-              {
-                id: "4",
-                name: "Sarah Williams",
-                email: "s.williams@example.com",
-                role: "INSTRUCTOR",
-                createdAt: new Date("2023-08-05").toISOString(),
-              },
-            ],
-            popularClasses: [
-              {
-                id: "1",
-                name: "Morning Yoga",
-                instructor: { name: "Sarah Williams", id: "4" },
-                category: { name: "Yoga", id: "1" },
-                startsAt: new Date("2023-09-01T09:00:00").toISOString(),
-                endsAt: new Date("2023-09-01T10:00:00").toISOString(),
-                _count: { bookings: 152 },
-                createdAt: new Date("2023-07-15").toISOString(),
-                updatedAt: new Date("2023-07-15").toISOString(),
-                categoryId: "1",
-                instructorId: "4",
-              },
-              {
-                id: "2",
-                name: "HIIT Workout",
-                instructor: { name: "Mike Thompson", id: "5" },
-                category: { name: "HIIT", id: "2" },
-                startsAt: new Date("2023-09-02T10:00:00").toISOString(),
-                endsAt: new Date("2023-09-02T11:00:00").toISOString(),
-                _count: { bookings: 138 },
-                createdAt: new Date("2023-07-16").toISOString(),
-                updatedAt: new Date("2023-07-16").toISOString(),
-                categoryId: "2",
-                instructorId: "5",
-              },
-              {
-                id: "3",
-                name: "Pilates Basics",
-                instructor: { name: "Emma Johnson", id: "6" },
-                category: { name: "Pilates", id: "3" },
-                startsAt: new Date("2023-09-03T14:00:00").toISOString(),
-                endsAt: new Date("2023-09-03T15:00:00").toISOString(),
-                _count: { bookings: 124 },
-                createdAt: new Date("2023-07-17").toISOString(),
-                updatedAt: new Date("2023-07-17").toISOString(),
-                categoryId: "3",
-                instructorId: "6",
-              },
-            ],
-          });
-        }, 1000); // Simulate API delay
       }
     } catch (err) {
       const errorMessage =
@@ -277,33 +185,94 @@ const AdminDashboard = () => {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "High":
-        return "red";
-      case "Medium":
-        return "orange";
-      case "Low":
-        return "yellow";
-      default:
-        return "gray";
+  // Function to fetch users for the ownerId dropdown
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await adminService.getUsers(1, 10);
+      if (response.success) {
+        setUserOptions(response.data.data);
+      } else {
+        throw new Error(response.message || "Failed to fetch users");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch users";
+      toast(toastUtils.errorToast("Error", errorMessage));
+    } finally {
+      setIsLoadingUsers(false);
     }
   };
 
-  // Function to format date strings
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+  // Open the modal and fetch user options
+  const handleOpenCreateGymModal = () => {
+    setIsCreateGymModalOpen(true);
+    fetchUsers();
+    // Reset the form data
+    setGymFormData({
+      name: "",
+      address: "",
+      ownerId: "",
     });
+    setFormErrors({});
   };
 
-  // Function to calculate revenue from a class based on bookings
-  const calculateClassRevenue = (bookingsCount: number) => {
-    // Assume $25 per booking
-    return bookingsCount * 25;
+  // Handle form input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setGymFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error for this field
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const errors = { ...prev };
+        delete errors[name];
+        return errors;
+      });
+    }
+  };
+
+  // Validate form before submission
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!gymFormData.name.trim()) {
+      errors.name = "Gym name is required";
+    }
+
+    if (!gymFormData.address.trim()) {
+      errors.address = "Address is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmitGym = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await adminService.createGym(gymFormData);
+      if (response.success) {
+        toast(toastUtils.successToast("Success", "Gym created successfully"));
+        setIsCreateGymModalOpen(false);
+      } else {
+        throw new Error(response.message || "Failed to create gym");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create gym";
+      toast(toastUtils.errorToast("Error", errorMessage));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -406,7 +375,8 @@ const AdminDashboard = () => {
             <Skeleton height="36px" width="80%" mt={2} mb={2} />
           ) : (
             <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              ${dashboardData.revenue}
+              coming soon
+              {/* ${dashboardData.revenue} */}
             </StatNumber>
           )}
           <StatHelpText>For current month</StatHelpText>
@@ -428,7 +398,8 @@ const AdminDashboard = () => {
             <Skeleton height="36px" width="80%" mt={2} mb={2} />
           ) : (
             <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              {dashboardData.growthRate}%
+              coming soon
+              {/* {dashboardData.growthRate}% */}
             </StatNumber>
           )}
           <StatHelpText>Compared to last month</StatHelpText>
@@ -462,25 +433,26 @@ const AdminDashboard = () => {
           </Button>
           <Button
             as={RouterLink}
-            to="/admin/reports"
+            // to="/admin/reports"
             colorScheme="purple"
             variant="outline"
             leftIcon={<FaChartLine />}
             size="lg"
             m={2}
+            disabled
           >
             View Reports
           </Button>
           <Button
             as={RouterLink}
-            to="/admin/settings"
+            to="/admin/gyms"
             colorScheme="purple"
             variant="outline"
-            leftIcon={<FaCog />}
+            leftIcon={<FaBuilding />}
             size="lg"
             m={2}
           >
-            System Settings
+            Manage Gyms
           </Button>
         </HStack>
       </MotionBox>
@@ -653,8 +625,6 @@ const AdminDashboard = () => {
                     <Tr>
                       <Th>Class</Th>
                       <Th isNumeric>Attendees</Th>
-                      <Th isNumeric>Revenue</Th>
-                      <Th>Actions</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -669,93 +639,113 @@ const AdminDashboard = () => {
                               <Td isNumeric>
                                 <Skeleton height="24px" width="60px" />
                               </Td>
-                              <Td isNumeric>
-                                <Skeleton height="24px" width="80px" />
-                              </Td>
-                              <Td>
-                                <Skeleton height="32px" width="100px" />
-                              </Td>
                             </Tr>
                           ))
-                      : dashboardData.popularClasses.map((classItem) => (
-                          <Tr
-                            key={classItem.id}
-                            _hover={{ bg: tableRowHoverBg }}
-                            transition="background-color 0.2s"
-                          >
-                            <Td>
-                              <Box>
-                                <Text fontWeight="medium">
-                                  {classItem.name}
-                                </Text>
-                                <Text fontSize="xs" color={textColor}>
-                                  by{" "}
-                                  {classItem.instructor?.name ||
-                                    "Unknown Instructor"}
-                                </Text>
-                              </Box>
-                            </Td>
-                            <Td isNumeric fontWeight="medium">
-                              {classItem._count?.bookings || 0}
-                            </Td>
-                            <Td isNumeric color="green.500" fontWeight="medium">
-                              $
-                              {calculateClassRevenue(
-                                classItem._count?.bookings || 0
-                              )}
-                            </Td>
-                            <Td>
-                              <Menu>
-                                <MenuButton
-                                  as={Button}
-                                  variant="ghost"
-                                  size="sm"
-                                  rightIcon={<FaEllipsisV />}
-                                >
-                                  Actions
-                                </MenuButton>
-                                <MenuList>
-                                  <MenuItem icon={<FaPencilAlt />}>
-                                    Edit
-                                  </MenuItem>
-                                  <MenuItem icon={<FaChartLine />}>
-                                    View Stats
-                                  </MenuItem>
-                                  <MenuItem
-                                    icon={<FaExclamationCircle />}
-                                    color="red.500"
-                                  >
-                                    Disable
-                                  </MenuItem>
-                                </MenuList>
-                              </Menu>
-                            </Td>
-                          </Tr>
-                        ))}
+                      : dashboardData.popularClasses.map(
+                          (classItem: ExtendedFitnessClass) => (
+                            <Tr
+                              key={classItem.id}
+                              _hover={{ bg: tableRowHoverBg }}
+                              transition="background-color 0.2s"
+                            >
+                              <Td>
+                                <Box>
+                                  <Text fontWeight="medium">
+                                    {classItem.name}
+                                  </Text>
+                                  <Text fontSize="xs" color={textColor}>
+                                    by{" "}
+                                    {classItem.instructor?.name ||
+                                      "Unknown Instructor"}
+                                  </Text>
+                                </Box>
+                              </Td>
+                              <Td isNumeric fontWeight="medium">
+                                {classItem._count?.bookings || 0}
+                              </Td>
+                            </Tr>
+                          )
+                        )}
                   </Tbody>
                 </Table>
               </TableContainer>
-
-              <Button
-                as={RouterLink}
-                to="/admin/classes/new"
-                colorScheme="purple"
-                bgGradient={buttonBgGradient}
-                color="white"
-                width="full"
-                mt={6}
-                _hover={{
-                  bgGradient: buttonHoverBgGradient,
-                  transform: "translateY(-2px)",
-                  boxShadow: "md",
-                }}
-              >
-                Create New Class
-              </Button>
             </CardBody>
           </Card>
         </MotionBox>
       </SimpleGrid>
+
+      {/* Create Gym Modal */}
+      <Modal
+        isOpen={isCreateGymModalOpen}
+        onClose={() => setIsCreateGymModalOpen(false)}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Gym</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl isInvalid={!!formErrors.name} mb={4}>
+              <FormLabel>Gym Name</FormLabel>
+              <Input
+                name="name"
+                value={gymFormData.name}
+                onChange={handleInputChange}
+                placeholder="Enter gym name"
+              />
+              {formErrors.name && (
+                <FormErrorMessage>{formErrors.name}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl isInvalid={!!formErrors.address} mb={4}>
+              <FormLabel>Address</FormLabel>
+              <Input
+                name="address"
+                value={gymFormData.address}
+                onChange={handleInputChange}
+                placeholder="Enter gym address"
+              />
+              {formErrors.address && (
+                <FormErrorMessage>{formErrors.address}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mb={4}>
+              <FormLabel>Owner</FormLabel>
+              <Select
+                name="ownerId"
+                value={gymFormData.ownerId}
+                onChange={handleInputChange}
+                placeholder="Select owner"
+                isDisabled={isLoadingUsers}
+              >
+                {userOptions.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
+              </Select>
+              <Text fontSize="sm" color="gray.500" mt={1}>
+                If not selected, current user will be set as owner
+              </Text>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              colorScheme="purple"
+              mr={3}
+              onClick={handleSubmitGym}
+              isLoading={isSubmitting}
+            >
+              Create
+            </Button>
+            <Button onClick={() => setIsCreateGymModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </MotionBox>
   );
 };

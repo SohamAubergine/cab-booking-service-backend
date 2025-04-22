@@ -49,6 +49,7 @@ import {
   FaLayerGroup,
   FaCalendarCheck,
   FaRegCalendarAlt,
+  FaUsers,
 } from "react-icons/fa";
 import { format } from "date-fns";
 import {
@@ -394,6 +395,13 @@ const ClassList = () => {
               <Icon as={TimeIcon} color={`${accentColor}.500`} boxSize={4} />
               <Text fontSize="sm">
                 to {formatDateTime(fitnessClass.endsAt)}
+              </Text>
+            </HStack>
+
+            <HStack>
+              <Icon as={FaUsers} color={`${accentColor}.500`} boxSize={4} />
+              <Text fontSize="sm">
+                Capacity: {fitnessClass.capacity} participants
               </Text>
             </HStack>
           </VStack>

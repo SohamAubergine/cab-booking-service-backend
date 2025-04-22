@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { InstructorController } from '../../controllers'
-import { authenticate, hasRole } from '../../middlewares/auth.middleware'
-import { CONSTANTS } from '../../utils/constants'
+import { Router } from "express";
+import { InstructorController } from "../../controllers";
+import { authenticate, hasRole } from "../../middlewares/auth.middleware";
+import { CONSTANTS } from "../../utils/constants";
 
-const instructorRouter = Router()
+const instructorRouter = Router();
 
 /**
  * @route GET /api/v1/instructors/classes
@@ -11,10 +11,22 @@ const instructorRouter = Router()
  * @access Authenticated instructors only
  */
 instructorRouter.get(
-  '/classes',
+  "/classes",
   authenticate,
   hasRole([CONSTANTS.AUTH.ROLES.INSTRUCTOR]),
   InstructorController.getInstructorClasses
-)
+);
 
-export default instructorRouter
+/**
+ * @route GET /api/v1/instructors/gyms
+ * @desc Get all gyms for the authenticated instructor
+ * @access Authenticated instructors only
+ */
+instructorRouter.get(
+  "/gyms",
+  authenticate,
+  hasRole([CONSTANTS.AUTH.ROLES.INSTRUCTOR]),
+  InstructorController.getInstructorGyms
+);
+
+export default instructorRouter;

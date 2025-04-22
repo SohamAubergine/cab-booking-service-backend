@@ -160,10 +160,21 @@ const theme = extendTheme({
   },
   styles: {
     global: (props) => ({
+      html: {
+        height: "100%",
+        width: "100%",
+      },
       body: {
+        height: "100%",
+        width: "100%",
         bg: props.colorMode === "dark" ? "gray.900" : "white",
         color: props.colorMode === "dark" ? "gray.100" : "gray.800",
         transition: "background-color 0.2s, color 0.2s",
+        lineHeight: "base",
+      },
+      "#root": {
+        height: "100%", 
+        width: "100%",
       },
       "::selection": {
         bg: "purple.300",

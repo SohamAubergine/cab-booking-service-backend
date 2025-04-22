@@ -81,3 +81,41 @@ export const getAllInstructors = catchAsync(
     );
   }
 );
+
+/**
+ * Get gyms for the current instructor
+ */
+export const getInstructorGyms = catchAsync(
+  async (req: Request, res: Response) => {
+    // Get the authenticated user
+    const instructorId = req.user?.id;
+
+    if (!instructorId) {
+      return res.status(STATUS_CODES.CLIENT_ERROR.UNAUTHORIZED).json(
+        APIResponse.sendError({
+          message: MESSAGES.AUTH.UNAUTHORIZED,
+        })
+      );
+    }
+
+    // Parse pagination parameters
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : 10;
+
+    // Get instructor's gyms with pagination
+    const result = await InstructorService.getInstructorGyms(
+      instructorId,
+      page,
+      limit
+    );
+
+    return res.status(STATUS_CODES.SUCCESS.OK).json(
+      APIResponse.sendSuccess({
+        message: MESSAGES.RETRIEVE_SUCCESS("Instructor gyms"),
+        data: result,
+      })
+    );
+  }
+);

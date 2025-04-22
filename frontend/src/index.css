@@ -17,21 +17,19 @@
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
 html,
-body {
+body,
+#root {
   height: 100%;
   width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 #root {
-  width: 100%;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -78,4 +76,21 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 92, 242, 0.4);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 92, 242, 0.6);
 }

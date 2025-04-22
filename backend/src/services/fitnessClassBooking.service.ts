@@ -105,6 +105,13 @@ export const createBooking = async (bookingData: {
   // Check if the fitness class exists
   const fitnessClass = await prisma.fitnessClass.findUnique({
     where: { id: bookingData.fitnessClassId },
+    include: {
+      _count: {
+        select: {
+          bookings: true,
+        },
+      },
+    },
   })
 
   if (!fitnessClass) {
@@ -126,7 +133,16 @@ export const createBooking = async (bookingData: {
   if (existingBooking) {
     throw new APIError(
       STATUS_CODES.CLIENT_ERROR.CONFLICT,
-      MESSAGES.EXISTS('Booking'),
+      MESSAGES.BOOKING.EXISTS,
+      true
+    )
+  }
+
+  // Check if class is at full capacity
+  if (fitnessClass._count.bookings >= fitnessClass.capacity) {
+    throw new APIError(
+      STATUS_CODES.CLIENT_ERROR.BAD_REQUEST,
+      MESSAGES.BOOKING.CLASS_FULL,
       true
     )
   }

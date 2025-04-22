@@ -633,22 +633,29 @@ const Home = () => {
               borderWidth="1px"
               borderColor={useColorModeValue("transparent", "gray.700")}
             >
-              <Box maxW={{ md: "60%" }} color="white">
+              <Box maxW={{ md: "60%" }}>
                 <Heading
                   fontSize={{ base: "3xl", md: "4xl" }}
-                  fontWeight="bold"
+                  // fontWeight="extrabold"
                   mb={4}
-                  textShadow="0 1px 2px rgba(0,0,0,0.3)"
+                  textShadow="0 2px 4px rgba(0,0,0,0.2)"
                   letterSpacing="tight"
+                  color="gray.500"
+                  _dark={{
+                    bgGradient: "linear(to-r, yellow.200, purple.200)",
+                    bgClip: "text",
+                    color: "transparent",
+                  }}
                 >
                   Ready to Start Your Fitness Journey?
                 </Heading>
                 <Text
-                  fontSize={{ base: "md", md: "lg" }}
+                  fontSize={{ base: "md", md: "xl" }}
                   mb={6}
-                  textShadow="0 1px 1px rgba(0,0,0,0.2)"
-                  fontWeight="medium"
+                  fontWeight="semibold"
                   letterSpacing="wide"
+                  color="gray.600"
+                  _dark={{ color: "white" }}
                 >
                   Join FitBook today and get access to premium classes, expert
                   instructors, and a supportive community.
@@ -839,7 +846,14 @@ const Home = () => {
 };
 
 // Feature Card Component
-const FeatureCard = ({ icon, title, description, delay }) => {
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  delay: number;
+}
+
+const FeatureCard = ({ icon, title, description, delay }: FeatureCardProps) => {
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
@@ -894,6 +908,16 @@ const FeatureCard = ({ icon, title, description, delay }) => {
 };
 
 // Class Card Component
+interface ClassCardProps {
+  title: string;
+  instructor: string;
+  image: string;
+  category: string;
+  duration: string;
+  level: string;
+  delay: number;
+}
+
 const ClassCard = ({
   title,
   instructor,
@@ -902,7 +926,7 @@ const ClassCard = ({
   duration,
   level,
   delay,
-}) => {
+}: ClassCardProps) => {
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
@@ -1005,7 +1029,21 @@ const ClassCard = ({
 };
 
 // Testimonial Card Component
-const TestimonialCard = ({ quote, name, position, avatar, delay }) => {
+interface TestimonialCardProps {
+  quote: string;
+  name: string;
+  position: string;
+  avatar: string;
+  delay: number;
+}
+
+const TestimonialCard = ({
+  quote,
+  name,
+  position,
+  avatar,
+  delay,
+}: TestimonialCardProps) => {
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}

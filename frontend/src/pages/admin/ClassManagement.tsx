@@ -47,6 +47,7 @@ import {
   AlertTitle,
   AlertDescription,
   Icon,
+  FormHelperText,
 } from "@chakra-ui/react";
 import {
   AddIcon,
@@ -62,6 +63,7 @@ import {
   FaChalkboardTeacher,
   FaLayerGroup,
   FaRegCalendarAlt,
+  FaUsers,
 } from "react-icons/fa";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
@@ -76,6 +78,7 @@ import {
   UpdateFitnessClassRequest,
   User,
   UserRole,
+  Gym,
 } from "../../types";
 import Loading from "../../components/Loading";
 import { motion } from "framer-motion";
@@ -111,8 +114,10 @@ const fitnessClassSchema = z
     name: z.string().min(3, "Name must be at least 3 characters"),
     categoryId: z.string().min(1, "Category is required"),
     instructorId: z.string().min(1, "Instructor is required"),
+    gymId: z.string().min(1, "Gym is required"),
     startsAt: z.string().min(1, "Start time is required"),
     endsAt: z.string().min(1, "End time is required"),
+    capacity: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -144,17 +149,42 @@ const fitnessClassSchema = z
       message: "Invalid date format",
       path: ["startsAt"],
     }
+  )
+  .refine(
+    (data) => {
+      if (data.capacity && data.capacity.trim() !== "") {
+        const capacityNum = parseInt(data.capacity, 10);
+        return !isNaN(capacityNum) && capacityNum > 0;
+      }
+      return true;
+    },
+    {
+      message: "Capacity must be a positive number",
+      path: ["capacity"],
+    }
   );
 
 type FitnessClassFormData = z.infer<typeof fitnessClassSchema>;
+
+interface FormattedFitnessClassData {
+  name: string;
+  categoryId: string;
+  instructorId: string;
+  gymId: string;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+}
 
 const ClassManagement = () => {
   const [classes, setClasses] = useState<FitnessClass[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [instructors, setInstructors] = useState<User[]>([]);
+  const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isInstructorsLoading, setIsInstructorsLoading] = useState(true);
+  const [isGymsLoading, setIsGymsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FitnessClassFilters>({
     page: 1,
@@ -278,6 +308,46 @@ const ClassManagement = () => {
     }
   };
 
+  const fetchGyms = async () => {
+    try {
+      setIsGymsLoading(true);
+      const response = await adminService.getAllGyms(1, 100);
+      console.log("Gyms response:", response);
+
+      if (response.success) {
+        const gymData = Array.isArray(response.data.data)
+          ? response.data.data
+          : response.data.data || [];
+
+        console.log("Gym data processed:", gymData);
+        setGyms(gymData);
+      } else {
+        console.error(
+          "Failed to fetch gyms - unsuccessful response:",
+          response
+        );
+        toast({
+          title: "Error",
+          description: "Failed to fetch gyms",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch gyms - exception:", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch gyms",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsGymsLoading(false);
+    }
+  };
+
   const fetchClasses = async () => {
     try {
       setIsLoading(true);
@@ -302,11 +372,13 @@ const ClassManagement = () => {
   useEffect(() => {
     console.log("Categories loaded:", categories);
     console.log("Instructors loaded:", instructors);
-  }, [categories, instructors]);
+    console.log("Gyms loaded:", gyms);
+  }, [categories, instructors, gyms]);
 
   useEffect(() => {
     fetchCategories();
     fetchInstructors();
+    fetchGyms();
   }, []);
 
   useEffect(() => {
@@ -319,8 +391,10 @@ const ClassManagement = () => {
       name: "",
       categoryId: "",
       instructorId: "",
+      gymId: "",
       startsAt: "",
       endsAt: "",
+      capacity: "20", // Default capacity as string
     });
     openForm();
   };
@@ -330,6 +404,7 @@ const ClassManagement = () => {
     setValue("name", fitnessClass.name);
     setValue("categoryId", fitnessClass.categoryId);
     setValue("instructorId", fitnessClass.instructorId);
+    setValue("gymId", fitnessClass.gymId);
     setValue(
       "startsAt",
       new Date(fitnessClass.startsAt).toISOString().slice(0, 16)
@@ -338,6 +413,7 @@ const ClassManagement = () => {
       "endsAt",
       new Date(fitnessClass.endsAt).toISOString().slice(0, 16)
     );
+    setValue("capacity", fitnessClass.capacity.toString());
     openForm();
   };
 
@@ -408,11 +484,15 @@ const ClassManagement = () => {
         return;
       }
 
-      // Make sure we have a valid fully formatted ISO string
-      const formattedData = {
-        ...data,
+      // Convert form data to the expected API request format
+      const formattedData: CreateFitnessClassRequest = {
+        name: data.name,
+        categoryId: data.categoryId,
+        instructorId: data.instructorId,
+        gymId: data.gymId,
         startsAt: startsAtDate.toISOString(),
         endsAt: endsAtDate.toISOString(),
+        capacity: data.capacity ? parseInt(data.capacity, 10) : 20,
       };
 
       console.log("Submitting class data:", formattedData);
@@ -421,7 +501,7 @@ const ClassManagement = () => {
         // Update existing class
         const response = await adminService.updateClass(
           currentClass.id,
-          formattedData
+          formattedData as UpdateFitnessClassRequest
         );
 
         if (response.success) {
@@ -602,6 +682,7 @@ const ClassManagement = () => {
                   <Th>Category</Th>
                   <Th>Instructor</Th>
                   <Th>Schedule</Th>
+                  <Th>Capacity</Th>
                   <Th width="100px">Actions</Th>
                 </Tr>
               </Thead>
@@ -647,6 +728,12 @@ const ClassManagement = () => {
                           <Text>to {formatDateTime(fitnessClass.endsAt)}</Text>
                         </HStack>
                       </VStack>
+                    </Td>
+                    <Td>
+                      <HStack>
+                        <Icon as={FaUsers} color={`${accentColor}.500`} />
+                        <Text>{fitnessClass.capacity} spots</Text>
+                      </HStack>
                     </Td>
                     <Td>
                       <HStack spacing={2}>
@@ -805,6 +892,36 @@ const ClassManagement = () => {
                   </FormControl>
                 </HStack>
 
+                <FormControl isInvalid={!!errors.gymId}>
+                  <FormLabel fontWeight="medium">Gym</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                      <Icon as={FaLayerGroup} color="gray.400" />
+                    </InputLeftElement>
+                    <Select
+                      placeholder="Select gym"
+                      {...register("gymId")}
+                      isDisabled={isGymsLoading}
+                      pl={10}
+                      focusBorderColor={`${accentColor}.400`}
+                    >
+                      {gyms.map((gym) => (
+                        <option key={gym.id} value={gym.id}>
+                          {gym.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </InputGroup>
+                  {errors.gymId && (
+                    <FormErrorMessage>{errors.gymId.message}</FormErrorMessage>
+                  )}
+                  {isGymsLoading && (
+                    <Text fontSize="sm" color="gray.500" mt={1}>
+                      Loading gyms...
+                    </Text>
+                  )}
+                </FormControl>
+
                 <Divider />
 
                 <Text fontWeight="medium" color={headingColor}>
@@ -852,6 +969,36 @@ const ClassManagement = () => {
                     )}
                   </FormControl>
                 </HStack>
+
+                <Divider />
+
+                <Text fontWeight="medium" color={headingColor}>
+                  Class Information
+                </Text>
+
+                <FormControl isInvalid={!!errors.capacity}>
+                  <FormLabel fontWeight="medium">Capacity</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                      <Icon as={FaUsers} color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      type="number"
+                      {...register("capacity")}
+                      placeholder="Enter maximum participants (default: 20)"
+                      pl={10}
+                      focusBorderColor={`${accentColor}.400`}
+                    />
+                  </InputGroup>
+                  {errors.capacity && (
+                    <FormErrorMessage>
+                      {errors.capacity.message}
+                    </FormErrorMessage>
+                  )}
+                  <FormHelperText>
+                    Maximum number of participants that can book this class
+                  </FormHelperText>
+                </FormControl>
               </VStack>
             </ModalBody>
             <ModalFooter borderTopWidth="1px" borderColor={cardBorder}>

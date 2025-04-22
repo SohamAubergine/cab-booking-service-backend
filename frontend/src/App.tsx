@@ -7,6 +7,7 @@ import {
 import { ChakraProvider } from "@chakra-ui/react";
 import { lazy, Suspense } from "react";
 import { AuthProvider } from "./context/AuthContext";
+import { GymProvider } from "./context/GymContext";
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,10 +26,12 @@ const ClassList = lazy(() => import("./pages/user/ClassList"));
 const BookingList = lazy(() => import("./pages/user/BookingList"));
 const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 const UserDashboard = lazy(() => import("./pages/user/Dashboard"));
-const FriendsPage = lazy(() => import("./pages/user/FriendsPage"));
+const Favorites = lazy(() => import("./pages/user/Favorites"));
+const MyGyms = lazy(() => import("./pages/user/MyGyms"));
 
 // Instructor pages
 const InstructorDashboard = lazy(() => import("./pages/instructor/Dashboard"));
+const InstructorGyms = lazy(() => import("./pages/instructor/InstructorGyms"));
 
 // Admin pages
 const AdminClassManagement = lazy(
@@ -36,69 +39,90 @@ const AdminClassManagement = lazy(
 );
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const AdminGymManagement = lazy(() => import("./pages/admin/GymManagement"));
 
 // Common pages
 const Home = lazy(() => import("./pages/Home"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const GymDetails = lazy(() => import("./pages/GymDetails"));
 
 function App() {
   return (
     <ChakraProvider theme={theme}>
       <AuthProvider>
-        <Router>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              {/* Public home route that's visible when logged out */}
-              <Route path="/" element={<Home />} />
+        <GymProvider>
+          <Router>
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                {/* Public home route that's visible when logged out */}
+                <Route path="/" element={<Home />} />
 
-              {/* Auth routes */}
-              <Route element={<AuthLayout />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-              </Route>
-
-              {/* Role-based redirect */}
-              <Route path="/dashboard" element={<RoleBasedRedirect />} />
-
-              {/* Protected routes - only accessible when logged in */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<MainLayout />}>
-                  {/* User routes */}
-                  <Route path="/user/dashboard" element={<UserDashboard />} />
-                  <Route path="/classes" element={<ClassList />} />
-                  <Route path="/classes/:classId" element={<ClassDetails />} />
-                  <Route path="/my-bookings" element={<BookingList />} />
-                  <Route path="/profile" element={<UserProfile />} />
-                  {/* <Route path="/friends" element={<FriendsPage />} /> */}
-                  {/* <Route path="/user/friends" element={<FriendsPage />} /> */}
-
-                  {/* Instructor routes */}
-                  <Route
-                    path="/instructor/dashboard"
-                    element={<InstructorDashboard />}
-                  />
-
-                  {/* Admin routes */}
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route
-                    path="/admin/classes"
-                    element={<AdminClassManagement />}
-                  />
-                  <Route
-                    path="/admin/users"
-                    element={<AdminUserManagement />}
-                  />
-
-                  {/* Catch-all */}
-                  <Route path="*" element={<NotFound />} />
+                {/* Auth routes */}
+                <Route element={<AuthLayout />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                 </Route>
-              </Route>
 
-              {/* Fallback route */}
-              <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-          </Suspense>
-        </Router>
+                {/* Role-based redirect */}
+                <Route path="/dashboard" element={<RoleBasedRedirect />} />
+
+                {/* Protected routes - only accessible when logged in */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<MainLayout />}>
+                    {/* User routes */}
+                    <Route path="/user/dashboard" element={<UserDashboard />} />
+                    <Route path="/classes" element={<ClassList />} />
+                    <Route
+                      path="/classes/:classId"
+                      element={<ClassDetails />}
+                    />
+                    <Route path="/my-bookings" element={<BookingList />} />
+                    <Route path="/favorites" element={<Favorites />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/my-gyms" element={<MyGyms />} />
+                    <Route path="/gyms/:gymId" element={<GymDetails />} />
+                    {/* <Route path="/friends" element={<FriendsPage />} /> */}
+                    {/* <Route path="/user/friends" element={<FriendsPage />} /> */}
+
+                    {/* Instructor routes */}
+                    <Route
+                      path="/instructor/dashboard"
+                      element={<InstructorDashboard />}
+                    />
+                    <Route
+                      path="/instructor/gyms"
+                      element={<InstructorGyms />}
+                    />
+
+                    {/* Admin routes */}
+                    <Route
+                      path="/admin/dashboard"
+                      element={<AdminDashboard />}
+                    />
+                    <Route
+                      path="/admin/classes"
+                      element={<AdminClassManagement />}
+                    />
+                    <Route
+                      path="/admin/users"
+                      element={<AdminUserManagement />}
+                    />
+                    <Route
+                      path="/admin/gyms"
+                      element={<AdminGymManagement />}
+                    />
+
+                    {/* Catch-all */}
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Route>
+
+                {/* Fallback route */}
+                <Route path="*" element={<Navigate to="/login" />} />
+              </Routes>
+            </Suspense>
+          </Router>
+        </GymProvider>
       </AuthProvider>
     </ChakraProvider>
   );

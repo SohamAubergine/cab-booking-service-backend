@@ -5,7 +5,6 @@ import {
   Container,
   Heading,
   Text,
-  Stack,
   Button,
   Flex,
   Badge,
@@ -20,33 +19,40 @@ import {
   HStack,
   VStack,
   useColorModeValue,
-  Tag,
-  TagLabel,
-  Tooltip,
   CardHeader,
-  CardFooter,
-  IconButton,
+  Stack,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from "@chakra-ui/react";
+import { CalendarIcon, TimeIcon } from "@chakra-ui/icons";
 import {
-  ChevronLeftIcon,
-  CalendarIcon,
-  TimeIcon,
-  InfoIcon,
-} from "@chakra-ui/icons";
-import {
-  FaMapMarkerAlt,
   FaChalkboardTeacher,
   FaRegCalendarAlt,
-  FaCalendarCheck,
   FaArrowLeft,
+  FaCheckCircle,
+  FaUsers,
 } from "react-icons/fa";
 import { format } from "date-fns";
-import { fitnessClassService } from "../../services/api";
-import { FitnessClass } from "../../types";
+import {
+  fitnessClassService,
+  bookingService,
+  reviewService,
+} from "../../services/api";
+import { FitnessClass, Review, ClassRatingSummary } from "../../types";
 import Loading from "../../components/Loading";
 import ErrorDisplay from "../../components/ErrorDisplay";
+import ReviewForm from "../../components/ReviewForm";
+import ReviewDisplay from "../../components/ReviewDisplay";
 import * as toastUtils from "../../utils/toast";
 import { motion } from "framer-motion";
+import FavoriteButton from "../../components/FavoriteButton";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -81,6 +87,17 @@ const ClassDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAlreadyBooked, setIsAlreadyBooked] = useState(false);
+  const [checkingBookingStatus, setCheckingBookingStatus] = useState(true);
+
+  // Review-related state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [ratingSummary, setRatingSummary] = useState<ClassRatingSummary | null>(
+    null
+  );
+  const [userReview, setUserReview] = useState<Review | null>(null);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [isClassPast, setIsClassPast] = useState(false);
 
   // Theme colors
   const cardBg = useColorModeValue("white", "gray.800");
@@ -89,6 +106,13 @@ const ClassDetails = () => {
   const headingColor = useColorModeValue("gray.800", "white");
   const cardHeaderBg = useColorModeValue("purple.50", "purple.900");
   const accentColor = "purple";
+
+  // New function to check if a class has ended
+  const checkIfClassHasEnded = (endsAt: string): boolean => {
+    const endDate = new Date(endsAt);
+    const now = new Date();
+    return endDate < now;
+  };
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -101,6 +125,10 @@ const ClassDetails = () => {
 
         if (response.success) {
           setFitnessClass(response.data);
+          // Check if the class has already ended
+          if (response.data.endsAt) {
+            setIsClassPast(checkIfClassHasEnded(response.data.endsAt));
+          }
         } else {
           setError(response.message);
         }
@@ -116,6 +144,75 @@ const ClassDetails = () => {
     fetchClassDetails();
   }, [classId]);
 
+  // Check if user has already booked this class
+  useEffect(() => {
+    const checkBookingStatus = async () => {
+      if (!classId) return;
+
+      try {
+        setCheckingBookingStatus(true);
+        // Get user's bookings
+        const response = await bookingService.getBookings(1, 100);
+
+        if (response.success) {
+          // Check if any booking matches this class ID
+          const isBooked = response.data.data.some(
+            (booking) => booking.fitnessClassId === classId
+          );
+          setIsAlreadyBooked(isBooked);
+        }
+      } catch (err) {
+        console.error("Error checking booking status:", err);
+        // Don't set error state, just assume not booked
+        setIsAlreadyBooked(false);
+      } finally {
+        setCheckingBookingStatus(false);
+      }
+    };
+
+    checkBookingStatus();
+  }, [classId]);
+
+  // New useEffect to fetch reviews and rating summary
+  useEffect(() => {
+    const fetchReviewData = async () => {
+      if (!classId) return;
+
+      try {
+        setIsLoadingReviews(true);
+
+        // Fetch class reviews
+        const reviewsResponse = await reviewService.getClassReviews(classId);
+        if (reviewsResponse.success) {
+          setReviews(reviewsResponse.data.data);
+        }
+
+        // Fetch rating summary
+        const summaryResponse = await reviewService.getClassRatingSummary(
+          classId
+        );
+        if (summaryResponse.success) {
+          setRatingSummary(summaryResponse.data);
+        }
+
+        // Fetch user's review if they've already submitted one
+        const userReviewResponse = await reviewService.getUserReviewForClass(
+          classId
+        );
+        if (userReviewResponse.success && userReviewResponse.data) {
+          setUserReview(userReviewResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching review data:", err);
+        // Don't set main error state, just log error
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+
+    fetchReviewData();
+  }, [classId]);
+
   const handleBookClass = async () => {
     if (!classId || !fitnessClass) return;
 
@@ -124,6 +221,7 @@ const ClassDetails = () => {
       const response = await fitnessClassService.bookClass(classId);
 
       if (response.success) {
+        setIsAlreadyBooked(true);
         toast(toastUtils.bookingSuccessToast(fitnessClass.name));
       } else {
         toast(toastUtils.bookingErrorToast(response.message));
@@ -134,6 +232,29 @@ const ClassDetails = () => {
       toast(toastUtils.errorToast("Booking Failed", errorMessage));
     } finally {
       setIsBooking(false);
+    }
+  };
+
+  const handleReviewSubmitted = () => {
+    // Refresh reviews and summary after submitting a new review
+    if (classId) {
+      reviewService.getUserReviewForClass(classId).then((response) => {
+        if (response.success && response.data) {
+          setUserReview(response.data);
+        }
+      });
+
+      reviewService.getClassReviews(classId).then((response) => {
+        if (response.success) {
+          setReviews(response.data.data);
+        }
+      });
+
+      reviewService.getClassRatingSummary(classId).then((response) => {
+        if (response.success) {
+          setRatingSummary(response.data);
+        }
+      });
     }
   };
 
@@ -194,241 +315,271 @@ const ClassDetails = () => {
   const isClassEnded = classEndsAt <= now;
 
   return (
-    <MotionBox
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      p={4}
-      maxW="container.lg"
-      mx="auto"
-    >
-      {/* Navigation */}
-      <MotionFlex variants={itemVariants} align="center" mb={6}>
-        <Button
-          leftIcon={<FaArrowLeft />}
-          variant="ghost"
-          onClick={() => navigate("/classes")}
-          _hover={{ bg: `${accentColor}.50` }}
-        >
-          Back to Classes
-        </Button>
-      </MotionFlex>
-
-      {/* Main Card */}
-      <MotionCard
-        variants={itemVariants}
-        borderRadius="xl"
-        overflow="hidden"
-        boxShadow="xl"
-        borderWidth="1px"
-        borderColor={cardBorder}
+    <Container maxW="container.lg" py={8}>
+      <Button
+        leftIcon={<FaArrowLeft />}
+        onClick={() => navigate(-1)}
+        mb={4}
+        size="sm"
+        variant="outline"
       >
-        {/* Header */}
-        <CardHeader bg={cardHeaderBg} py={6}>
-          <Flex
-            justifyContent="space-between"
-            alignItems="flex-start"
-            wrap="wrap"
-            gap={4}
-          >
-            <Box>
-              <HStack spacing={2} mb={2}>
-                {fitnessClass.category && (
-                  <Tag
-                    size="md"
-                    colorScheme={getCategoryColor(fitnessClass.category.name)}
-                    borderRadius="full"
+        Back
+      </Button>
+
+      {/* Tabs for Details and Reviews */}
+      <Tabs mt={8} colorScheme="purple" variant="enclosed">
+        <TabList>
+          <Tab>Class Details</Tab>
+          <Tab>
+            Reviews &amp; Ratings{" "}
+            {ratingSummary && (
+              <Badge ml={2} colorScheme="purple">
+                {ratingSummary.totalReviews}
+              </Badge>
+            )}
+          </Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel px={0}>
+            <MotionBox
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+            >
+              <Grid templateColumns={{ base: "1fr", md: "2fr 1fr" }} gap={6}>
+                {/* Left side: Class details */}
+                <GridItem>
+                  <MotionCard
+                    variants={itemVariants}
+                    bg={cardBg}
+                    border="1px solid"
+                    borderColor={cardBorder}
+                    borderRadius="lg"
+                    overflow="hidden"
+                    boxShadow="sm"
                   >
-                    <TagLabel>{fitnessClass.category.name}</TagLabel>
-                  </Tag>
-                )}
-                <Badge
-                  colorScheme={
-                    isClassEnded ? "gray" : isClassStarted ? "orange" : "green"
-                  }
-                  fontSize="0.8em"
-                  px={2}
-                  py={1}
-                  borderRadius="full"
-                >
-                  {isClassEnded
-                    ? "Completed"
-                    : isClassStarted
-                    ? "In Progress"
-                    : "Upcoming"}
-                </Badge>
-              </HStack>
-              <Heading as="h1" size="xl" mb={2} color={headingColor}>
-                {fitnessClass.name}
-              </Heading>
-              <Text color={textColor}>
-                Join this {fitnessClass.category?.name || "fitness"} class with{" "}
-                {fitnessClass.instructor?.name || "our instructor"}
-              </Text>
-            </Box>
-          </Flex>
-        </CardHeader>
+                    <CardHeader bg={cardHeaderBg} py={4}>
+                      <Flex justifyContent="space-between" alignItems="center">
+                        <Box>
+                          <Heading as="h1" size="lg" color={headingColor}>
+                            {fitnessClass.name}
+                          </Heading>
+                          {fitnessClass.category && (
+                            <Badge
+                              colorScheme={getCategoryColor(
+                                fitnessClass.category.name
+                              )}
+                              mt={1}
+                            >
+                              {fitnessClass.category.name}
+                            </Badge>
+                          )}
+                        </Box>
+                        <FavoriteButton
+                          fitnessClassId={classId || ""}
+                          className={fitnessClass.name}
+                          size="md"
+                        />
+                      </Flex>
+                    </CardHeader>
 
-        <Divider />
+                    <CardBody>
+                      <VStack align="stretch" spacing={4}>
+                        {/* Instructor */}
+                        <MotionBox variants={itemVariants}>
+                          <HStack spacing={3}>
+                            <Icon
+                              as={FaChalkboardTeacher}
+                              boxSize={5}
+                              color={`${accentColor}.500`}
+                            />
+                            <Box>
+                              <Text fontWeight="bold" fontSize="sm">
+                                Instructor
+                              </Text>
+                              <Text>
+                                {fitnessClass.instructor
+                                  ? fitnessClass.instructor.name
+                                  : "No instructor assigned"}
+                              </Text>
+                            </Box>
+                          </HStack>
+                        </MotionBox>
 
-        <CardBody>
-          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={8}>
-            {/* Class Details */}
-            <GridItem>
-              <VStack align="stretch" spacing={5}>
-                <Heading as="h3" size="md" mb={2} color={headingColor}>
-                  Class Details
-                </Heading>
+                        {/* Date */}
+                        <MotionBox variants={itemVariants}>
+                          <HStack spacing={3}>
+                            <Icon
+                              as={FaRegCalendarAlt}
+                              boxSize={5}
+                              color={`${accentColor}.500`}
+                            />
+                            <Box>
+                              <Text fontWeight="bold" fontSize="sm">
+                                Date
+                              </Text>
+                              <Text>{formatDate(fitnessClass.startsAt)}</Text>
+                            </Box>
+                          </HStack>
+                        </MotionBox>
 
-                <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={FaChalkboardTeacher}
-                    color={`${accentColor}.500`}
-                    boxSize={5}
-                    mt={1}
-                  />
-                  <Box>
-                    <Text fontWeight="bold">Instructor</Text>
-                    <Text color={textColor}>
-                      {fitnessClass.instructor?.name || "Not specified"}
-                    </Text>
-                  </Box>
-                </HStack>
+                        {/* Time */}
+                        <MotionBox variants={itemVariants}>
+                          <HStack spacing={3}>
+                            <Icon
+                              as={TimeIcon}
+                              boxSize={5}
+                              color={`${accentColor}.500`}
+                            />
+                            <Box>
+                              <Text fontWeight="bold" fontSize="sm">
+                                Time
+                              </Text>
+                              <Text>
+                                {formatTime(fitnessClass.startsAt)} -{" "}
+                                {formatTime(fitnessClass.endsAt)}
+                              </Text>
+                            </Box>
+                          </HStack>
+                        </MotionBox>
 
-                <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={FaRegCalendarAlt}
-                    color={`${accentColor}.500`}
-                    boxSize={5}
-                    mt={1}
-                  />
-                  <Box>
-                    <Text fontWeight="bold">Date</Text>
-                    <Text color={textColor}>
-                      {formatDate(fitnessClass.startsAt)}
-                    </Text>
-                  </Box>
-                </HStack>
+                        {/* Capacity */}
+                        <MotionBox variants={itemVariants}>
+                          <HStack spacing={3}>
+                            <Icon
+                              as={FaUsers}
+                              boxSize={5}
+                              color={`${accentColor}.500`}
+                            />
+                            <Box>
+                              <Text fontWeight="bold" fontSize="sm">
+                                Capacity
+                              </Text>
+                              <Text>{fitnessClass.capacity} spots</Text>
+                            </Box>
+                          </HStack>
+                        </MotionBox>
+                      </VStack>
+                    </CardBody>
+                  </MotionCard>
+                </GridItem>
 
-                <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={TimeIcon}
-                    color={`${accentColor}.500`}
-                    boxSize={5}
-                    mt={1}
-                  />
-                  <Box>
-                    <Text fontWeight="bold">Time</Text>
-                    <Text color={textColor}>
-                      {formatTime(fitnessClass.startsAt)} -{" "}
-                      {formatTime(fitnessClass.endsAt)}
-                    </Text>
-                    <Text fontSize="sm" color={textColor} opacity={0.8}>
-                      Duration:{" "}
-                      {Math.round(
-                        (classEndsAt.getTime() - classStartsAt.getTime()) /
-                          (1000 * 60)
-                      )}{" "}
-                      minutes
-                    </Text>
-                  </Box>
-                </HStack>
-              </VStack>
-            </GridItem>
-
-            {/* Booking Section */}
-            <GridItem>
-              <Card
-                variant="outline"
-                borderRadius="lg"
-                borderColor={cardBorder}
-                bg={useColorModeValue("gray.50", "gray.700")}
-                h="100%"
-              >
-                <CardBody>
-                  <VStack spacing={6} align="stretch">
-                    <Heading as="h3" size="md" color={headingColor}>
-                      Book This Class
-                    </Heading>
-
-                    <Text color={textColor}>
-                      Ready to join this class? Click below to secure your spot.
-                    </Text>
-
-                    <Box
-                      bg={useColorModeValue(
-                        `${accentColor}.50`,
-                        `${accentColor}.900`
+                {/* Right side: Booking status card */}
+                <GridItem>
+                  <MotionCard
+                    variants={itemVariants}
+                    bg={cardBg}
+                    border="1px solid"
+                    borderColor={cardBorder}
+                    borderRadius="lg"
+                    overflow="hidden"
+                    boxShadow="sm"
+                  >
+                    <CardHeader
+                      bg={useColorModeValue("blue.50", "blue.900")}
+                      py={4}
+                    >
+                      <Heading as="h3" size="md" color={headingColor}>
+                        Booking Status
+                      </Heading>
+                    </CardHeader>
+                    <CardBody>
+                      {checkingBookingStatus ? (
+                        <Flex justifyContent="center" py={4}>
+                          <Spinner />
+                        </Flex>
+                      ) : isAlreadyBooked ? (
+                        <MotionBox
+                          variants={itemVariants}
+                          bg={useColorModeValue("green.50", "green.900")}
+                          p={4}
+                          borderRadius="md"
+                        >
+                          <HStack>
+                            <Icon
+                              as={FaCheckCircle}
+                              color="green.500"
+                              boxSize={5}
+                            />
+                            <Box>
+                              <Text fontWeight="bold">You're all set!</Text>
+                              <Text fontSize="sm">
+                                You've already booked this class.
+                              </Text>
+                            </Box>
+                          </HStack>
+                        </MotionBox>
+                      ) : isClassPast ? (
+                        <Alert status="info" borderRadius="md">
+                          <AlertIcon />
+                          <Box>
+                            <AlertTitle>Class has ended</AlertTitle>
+                            <AlertDescription>
+                              This class is no longer available for booking.
+                            </AlertDescription>
+                          </Box>
+                        </Alert>
+                      ) : (
+                        <VStack spacing={4} align="stretch">
+                          <Text fontSize="sm" color={textColor}>
+                            Reserve your spot in this class by clicking the
+                            button below.
+                          </Text>
+                          <Button
+                            colorScheme="blue"
+                            size="lg"
+                            width="full"
+                            onClick={handleBookClass}
+                            isLoading={isBooking}
+                            loadingText="Booking..."
+                          >
+                            Book Class
+                          </Button>
+                        </VStack>
                       )}
-                      p={4}
-                      borderRadius="md"
-                    >
-                      <HStack>
-                        <Icon as={InfoIcon} color={`${accentColor}.500`} />
-                        <Text fontWeight="medium" fontSize="sm">
-                          {isClassEnded
-                            ? "This class has already ended"
-                            : isClassStarted
-                            ? "This class has already started"
-                            : "Classes can be booked up until 1 hour before start time"}
-                        </Text>
-                      </HStack>
-                    </Box>
+                    </CardBody>
+                  </MotionCard>
+                </GridItem>
+              </Grid>
+            </MotionBox>
+          </TabPanel>
 
-                    <Button
-                      colorScheme={accentColor}
-                      size="lg"
-                      width="100%"
-                      onClick={handleBookClass}
-                      isLoading={isBooking}
-                      loadingText="Booking..."
-                      isDisabled={isClassStarted}
-                      leftIcon={<FaCalendarCheck />}
-                      boxShadow="md"
-                      _hover={
-                        !isClassStarted
-                          ? { transform: "translateY(-2px)", boxShadow: "lg" }
-                          : undefined
-                      }
-                      transition="all 0.2s"
-                    >
-                      {isClassEnded
-                        ? "Class Ended"
-                        : isClassStarted
-                        ? "Class In Progress"
-                        : "Book Now"}
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-            </GridItem>
-          </Grid>
-        </CardBody>
+          <TabPanel px={0}>
+            <Stack spacing={6}>
+              {/* Review form - only show if user has booked and class has ended */}
+              {isAlreadyBooked && isClassPast && (
+                <Box mb={6}>
+                  <ReviewForm
+                    fitnessClassId={classId || ""}
+                    fitnessClassName={fitnessClass.name}
+                    onReviewSubmitted={handleReviewSubmitted}
+                    existingReview={userReview}
+                  />
+                </Box>
+              )}
 
-        <Divider />
-
-        <CardFooter>
-          <HStack spacing={4} width="100%" justify="space-between">
-            <Button
-              variant="outline"
-              colorScheme={accentColor}
-              leftIcon={<FaArrowLeft />}
-              onClick={() => navigate("/classes")}
-            >
-              Back to Classes
-            </Button>
-
-            <Button
-              variant="outline"
-              colorScheme={accentColor}
-              onClick={() => navigate("/my-bookings")}
-            >
-              View My Bookings
-            </Button>
-          </HStack>
-        </CardFooter>
-      </MotionCard>
-    </MotionBox>
+              {/* Show review data if available */}
+              {isLoadingReviews ? (
+                <Flex justify="center" py={8}>
+                  <Spinner size="lg" />
+                </Flex>
+              ) : ratingSummary ? (
+                <ReviewDisplay summary={ratingSummary} reviews={reviews} />
+              ) : (
+                <Alert status="info" borderRadius="md">
+                  <AlertIcon />
+                  <AlertTitle>No reviews yet</AlertTitle>
+                  <AlertDescription>
+                    Be the first to review this class after attending.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </Stack>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Container>
   );
 };
 
