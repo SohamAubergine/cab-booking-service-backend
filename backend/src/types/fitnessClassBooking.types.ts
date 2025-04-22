@@ -39,5 +39,10 @@ export interface BookingResponse {
       id: string
       name: string
     }
+    gym?: {
+      id: string
+      name: string
+      address: string
+    }
   }
 }

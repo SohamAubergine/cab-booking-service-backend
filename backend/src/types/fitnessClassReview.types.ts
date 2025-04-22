@@ -39,6 +39,11 @@ export interface ReviewResponse {
   fitnessClass?: {
     id: string
     name: string
+    gym?: {
+      id: string
+      name: string
+      address: string
+    }
   }
 }
 

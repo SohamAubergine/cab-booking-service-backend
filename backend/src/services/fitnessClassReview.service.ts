@@ -192,6 +192,13 @@ export const getClassReviews = async (
         select: {
           id: true,
           name: true,
+          gym: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
         },
       },
     },
