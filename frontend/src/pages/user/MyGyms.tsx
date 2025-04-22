@@ -27,7 +27,7 @@ import {
   FaChalkboardTeacher as FaGraduationCap,
 } from "react-icons/fa";
 import { Gym, PaginatedResponse, UserRole } from "../../types";
-import { userService } from "../../services/api";
+import { userService, instructorService } from "../../services/api";
 import Pagination from "../../components/Pagination";
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../context/AuthContext";
@@ -58,15 +58,36 @@ const MyGyms = () => {
   const [isRegisterGymModalOpen, setIsRegisterGymModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchGyms(1);
-  }, []);
+    if (user) {
+      fetchGyms(1);
+    }
+  }, [user]);
 
   const fetchGyms = async (page: number) => {
+    if (!user) return;
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = await userService.getUserGyms(page, 9);
+      let response;
+      console.log("Fetching gyms for role:", user.role);
+
+      // Use different service based on user role
+      if (user.role === UserRole.INSTRUCTOR) {
+        console.log("Using instructor service to fetch gyms");
+        response = await instructorService.getInstructorGyms(page, 9);
+      } else {
+        console.log("Using user service to fetch gyms");
+        response = await userService.getUserGyms(page, 9);
+      }
+
+      console.log("API response:", response);
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to load gyms");
+      }
+
       const paginatedData = response.data as PaginatedResponse<Gym>;
 
       setGyms(paginatedData.data);
@@ -76,6 +97,7 @@ const MyGyms = () => {
         totalItems: paginatedData.meta.total,
       });
     } catch (err) {
+      console.error("Error fetching gyms:", err);
       setError("Failed to load gyms. Please try again.");
       toast({
         title: "Error",
@@ -101,6 +123,16 @@ const MyGyms = () => {
     setIsRegisterGymModalOpen(false);
   };
 
+  if (!user) {
+    return (
+      <EmptyState
+        title="Authentication Required"
+        message="Please login to view your gyms."
+        icon={FaUser}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <Container maxW="container.xl" py={8}>
@@ -110,41 +142,17 @@ const MyGyms = () => {
               My Gyms
             </Heading>
 
-            {user &&
-              (user.role === UserRole.USER ||
-                user.role === UserRole.INSTRUCTOR) && (
-                <Button
-                  variant="solid"
-                  colorScheme="teal"
-                  leftIcon={<FaPlus />}
-                  onClick={handleOpenRegisterGym}
-                  mb={2}
-                  size="md"
-                  _hover={{
-                    transform: "translateY(-2px)",
-                    boxShadow: "lg",
-                  }}
-                >
-                  Register Gym
-                </Button>
-              )}
+            <Button
+              variant="solid"
+              colorScheme="teal"
+              leftIcon={<FaPlus />}
+              isLoading={true}
+              mb={2}
+              size="md"
+            >
+              Register Gym
+            </Button>
           </Flex>
-
-          {user && user.role === UserRole.USER && (
-            <Text color="gray.600" fontSize="lg">
-              <Icon as={FaGym} mr={2} />
-              These are the gyms you've registered. You can manage their details
-              and see associated activities.
-            </Text>
-          )}
-
-          {user && user.role === UserRole.INSTRUCTOR && (
-            <Text color="gray.600" fontSize="lg">
-              <Icon as={FaGraduationCap} mr={2} />
-              These are the gyms where you teach classes. You can see details
-              and manage your schedule.
-            </Text>
-          )}
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
             {Array.from({ length: 6 }).map((_, index) => (
@@ -175,13 +183,63 @@ const MyGyms = () => {
     );
   }
 
+  const pageTitle =
+    user.role === UserRole.INSTRUCTOR ? "My Teaching Locations" : "My Gyms";
+  const emptyStateTitle =
+    user.role === UserRole.INSTRUCTOR
+      ? "No Teaching Locations"
+      : "No Gyms Found";
+  const emptyStateMessage =
+    user.role === UserRole.INSTRUCTOR
+      ? "You don't have any gyms where you teach classes yet."
+      : "You don't have any registered gyms yet.";
+
   if (gyms.length === 0) {
     return (
-      <EmptyState
-        title="No Gyms Found"
-        message="You don't have any gyms yet."
-        icon={FaBuilding}
-      />
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={6} align="stretch">
+          <Flex justify="space-between" align="center" wrap="wrap">
+            <Heading as="h1" size="xl" color={headingColor} mb={2}>
+              {pageTitle}
+            </Heading>
+
+            <Button
+              variant="solid"
+              colorScheme="teal"
+              leftIcon={<FaPlus />}
+              onClick={handleOpenRegisterGym}
+              mb={2}
+              size="md"
+              _hover={{
+                transform: "translateY(-2px)",
+                boxShadow: "lg",
+              }}
+            >
+              Register Gym
+            </Button>
+          </Flex>
+
+          <EmptyState
+            title={emptyStateTitle}
+            message={emptyStateMessage}
+            icon={FaBuilding}
+          />
+        </VStack>
+
+        <RegisterGymModal
+          isOpen={isRegisterGymModalOpen}
+          onClose={handleCloseRegisterGym}
+          onSuccess={() => {
+            fetchGyms(1);
+            toast({
+              title: "Gym registered successfully",
+              status: "success",
+              duration: 3000,
+              isClosable: true,
+            });
+          }}
+        />
+      </Container>
     );
   }
 
@@ -190,30 +248,26 @@ const MyGyms = () => {
       <VStack spacing={6} align="stretch">
         <Flex justify="space-between" align="center" wrap="wrap">
           <Heading as="h1" size="xl" color={headingColor} mb={2}>
-            My Gyms
+            {pageTitle}
           </Heading>
 
-          {user &&
-            (user.role === UserRole.USER ||
-              user.role === UserRole.INSTRUCTOR) && (
-              <Button
-                variant="solid"
-                colorScheme="teal"
-                leftIcon={<FaPlus />}
-                onClick={handleOpenRegisterGym}
-                mb={2}
-                size="md"
-                _hover={{
-                  transform: "translateY(-2px)",
-                  boxShadow: "lg",
-                }}
-              >
-                Register Gym
-              </Button>
-            )}
+          <Button
+            variant="solid"
+            colorScheme="teal"
+            leftIcon={<FaPlus />}
+            onClick={handleOpenRegisterGym}
+            mb={2}
+            size="md"
+            _hover={{
+              transform: "translateY(-2px)",
+              boxShadow: "lg",
+            }}
+          >
+            Register Gym
+          </Button>
         </Flex>
 
-        {user && user.role === UserRole.USER && (
+        {user.role === UserRole.USER && (
           <Text color="gray.600" fontSize="lg">
             <Icon as={FaGym} mr={2} />
             These are the gyms you've registered. You can manage their details
@@ -221,7 +275,7 @@ const MyGyms = () => {
           </Text>
         )}
 
-        {user && user.role === UserRole.INSTRUCTOR && (
+        {user.role === UserRole.INSTRUCTOR && (
           <Text color="gray.600" fontSize="lg">
             <Icon as={FaGraduationCap} mr={2} />
             These are the gyms where you teach classes. You can see details and
