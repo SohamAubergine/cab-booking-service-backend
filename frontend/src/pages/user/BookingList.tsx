@@ -205,6 +205,7 @@ const BookingList = () => {
               boxShadow="md"
               _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
               transition="all 0.2s"
+              className="cursor-dumbbell"
             >
               Browse Classes
             </Button>
@@ -311,6 +312,7 @@ const BookingList = () => {
             boxShadow="sm"
             _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}
             transition="all 0.2s"
+            className="cursor-dumbbell"
           >
             View Details
           </Button>
@@ -342,6 +344,7 @@ const BookingList = () => {
           variant="outline"
           onClick={handleRefresh}
           isLoading={isLoading}
+          className="cursor-dumbbell"
         />
       </MotionFlex>
 
@@ -366,6 +369,7 @@ const BookingList = () => {
               isDisabled={page === 1}
               colorScheme="purple"
               variant="outline"
+              className="cursor-dumbbell"
             />
             <Text px={4}>
               Page {page} of {totalPages}
@@ -377,6 +381,7 @@ const BookingList = () => {
               isDisabled={page === totalPages}
               colorScheme="purple"
               variant="outline"
+              className="cursor-dumbbell"
             />
           </HStack>
         </Flex>

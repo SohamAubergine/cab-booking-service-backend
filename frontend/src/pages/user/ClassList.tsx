@@ -490,6 +490,7 @@ const ClassList = () => {
                   boxShadow="sm"
                   _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}
                   transition="all 0.2s"
+                  className="cursor-dumbbell"
                 >
                   Book Now
                 </Button>
@@ -500,6 +501,7 @@ const ClassList = () => {
                   w="100%"
                   onClick={() => handleViewDetails(fitnessClass.id)}
                   _hover={{ bg: `${accentColor}.50` }}
+                  className="cursor-dumbbell"
                 >
                   View Details
                 </Button>
@@ -682,6 +684,7 @@ const ClassList = () => {
                 boxShadow="md"
                 _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
                 transition="all 0.2s"
+                className="cursor-dumbbell"
               >
                 Apply Filters
               </Button>
@@ -713,6 +716,7 @@ const ClassList = () => {
               variant="outline"
               colorScheme={accentColor}
               size="sm"
+              className="cursor-dumbbell"
             >
               Previous
             </Button>
@@ -726,6 +730,7 @@ const ClassList = () => {
               variant="outline"
               colorScheme={accentColor}
               size="sm"
+              className="cursor-dumbbell"
             >
               Next
             </Button>
