@@ -320,85 +320,66 @@ const BookingList = () => {
   };
 
   return (
-    <MotionBox
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      p={4}
-    >
-      {/* Header Section */}
+    <MotionBox variants={containerVariants} initial="hidden" animate="visible">
       <MotionFlex
+        mb={6}
+        justifyContent="space-between"
+        alignItems="center"
         variants={itemVariants}
-        direction={{ base: "column", md: "row" }}
-        justify="space-between"
-        align={{ base: "flex-start", md: "center" }}
-        mb={8}
       >
-        <Box mb={{ base: 4, md: 0 }}>
-          <Heading as="h1" size="xl" mb={2} color={headingColor}>
+        <Box>
+          <Heading as="h1" size="xl" color={headingColor} mb={2}>
             My Bookings
           </Heading>
           <Text color={textColor}>
-            View and manage all your booked fitness classes
+            View and manage all your upcoming and past class bookings.
           </Text>
         </Box>
-        <HStack>
-          <Tooltip label="Refresh bookings">
-            <IconButton
-              aria-label="Refresh bookings"
-              icon={<FaSync />}
-              colorScheme={accentColor}
-              variant="outline"
-              onClick={handleRefresh}
-              isLoading={isLoading}
-            />
-          </Tooltip>
-          <Button
-            leftIcon={<FaRegCalendarAlt />}
-            colorScheme={accentColor}
-            onClick={() => navigate("/classes")}
-          >
-            Browse Classes
-          </Button>
-        </HStack>
+        <IconButton
+          icon={<FaSync />}
+          aria-label="Refresh bookings"
+          colorScheme="purple"
+          variant="outline"
+          onClick={handleRefresh}
+          isLoading={isLoading}
+        />
       </MotionFlex>
 
-      {error && <ErrorDisplay error={error} mb={6} />}
+      {error && <ErrorDisplay message={error} onClose={() => setError(null)} />}
 
-      {/* Main Content - Booking Cards */}
-      <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={6} mb={8}>
+      <SimpleGrid
+        columns={{ base: 1, md: 2, xl: 3 }}
+        spacing={6}
+        mb={8}
+        className="bookings-list"
+      >
         {renderBookingCards()}
       </SimpleGrid>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <MotionFlex variants={itemVariants} justify="center" mt={4}>
-          <HStack spacing={2}>
-            <Button
-              leftIcon={<ChevronLeftIcon />}
+      {!isLoading && totalPages > 1 && (
+        <Flex justify="center" mt={8}>
+          <HStack>
+            <IconButton
+              icon={<ChevronLeftIcon />}
+              aria-label="Previous page"
               onClick={() => handleChangePage(page - 1)}
               isDisabled={page === 1}
+              colorScheme="purple"
               variant="outline"
-              colorScheme={accentColor}
-              size="sm"
-            >
-              Previous
-            </Button>
-            <Text fontWeight="medium" mx={2}>
+            />
+            <Text px={4}>
               Page {page} of {totalPages}
             </Text>
-            <Button
-              rightIcon={<ChevronRightIcon />}
+            <IconButton
+              icon={<ChevronRightIcon />}
+              aria-label="Next page"
               onClick={() => handleChangePage(page + 1)}
               isDisabled={page === totalPages}
+              colorScheme="purple"
               variant="outline"
-              colorScheme={accentColor}
-              size="sm"
-            >
-              Next
-            </Button>
+            />
           </HStack>
-        </MotionFlex>
+        </Flex>
       )}
     </MotionBox>
   );

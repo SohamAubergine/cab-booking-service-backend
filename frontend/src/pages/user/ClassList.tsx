@@ -306,35 +306,43 @@ const ClassList = () => {
   const renderClassCards = () => {
     if (isLoading) {
       // Show skeleton loaders while loading
-      return Array(6)
-        .fill(0)
-        .map((_, index) => (
-          <MotionCard
-            key={`skeleton-${index}`}
-            variants={cardVariants}
-            boxShadow="md"
-            borderRadius="lg"
-            overflow="hidden"
-            borderWidth="1px"
-            borderColor={cardBorder}
-          >
-            <CardHeader bg={cardHeaderBg} pb={3}>
-              <Skeleton height="24px" width="80%" mb={2} />
-              <Skeleton height="20px" width="40%" />
-            </CardHeader>
-            <CardBody pt={4}>
-              <Stack spacing={3}>
-                <SkeletonText noOfLines={4} spacing={3} />
-              </Stack>
-            </CardBody>
-            <CardFooter>
-              <Stack spacing={3} width="100%">
-                <Skeleton height="40px" />
-                <Skeleton height="40px" />
-              </Stack>
-            </CardFooter>
-          </MotionCard>
-        ));
+      return (
+        <SimpleGrid
+          columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+          spacing={6}
+          className="fitness-classes"
+        >
+          {Array(6)
+            .fill(0)
+            .map((_, index) => (
+              <MotionCard
+                key={`skeleton-${index}`}
+                variants={cardVariants}
+                boxShadow="md"
+                borderRadius="lg"
+                overflow="hidden"
+                borderWidth="1px"
+                borderColor={cardBorder}
+              >
+                <CardHeader bg={cardHeaderBg} pb={3}>
+                  <Skeleton height="24px" width="80%" mb={2} />
+                  <Skeleton height="20px" width="40%" />
+                </CardHeader>
+                <CardBody pt={4}>
+                  <Stack spacing={3}>
+                    <SkeletonText noOfLines={4} spacing={3} />
+                  </Stack>
+                </CardBody>
+                <CardFooter>
+                  <Stack spacing={3} width="100%">
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                  </Stack>
+                </CardFooter>
+              </MotionCard>
+            ))}
+        </SimpleGrid>
+      );
     }
 
     if (!isLoading && classes.length === 0) {
@@ -371,122 +379,136 @@ const ClassList = () => {
       );
     }
 
-    return classes.map((fitnessClass) => (
-      <MotionCard
-        key={fitnessClass.id}
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        whileHover="hover"
-        boxShadow="md"
-        borderRadius="lg"
-        overflow="hidden"
-        borderWidth="1px"
-        borderColor={cardBorder}
+    return (
+      <SimpleGrid
+        columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+        spacing={6}
+        className="fitness-classes"
       >
-        <CardHeader bg={cardHeaderBg} pb={3}>
-          <Flex justifyContent="space-between" alignItems="flex-start">
-            <VStack align="flex-start" spacing={1}>
-              <Heading size="md" color={headingColor}>
-                {fitnessClass.name}
-              </Heading>
-              {fitnessClass.category && (
-                <Tag
-                  size="md"
-                  colorScheme={getCategoryColor(fitnessClass.category.name)}
-                  borderRadius="full"
+        {classes.map((fitnessClass) => (
+          <MotionCard
+            key={fitnessClass.id}
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            boxShadow="md"
+            borderRadius="lg"
+            overflow="hidden"
+            borderWidth="1px"
+            borderColor={cardBorder}
+          >
+            <CardHeader bg={cardHeaderBg} pb={3}>
+              <Flex justifyContent="space-between" alignItems="flex-start">
+                <VStack align="flex-start" spacing={1}>
+                  <Heading size="md" color={headingColor}>
+                    {fitnessClass.name}
+                  </Heading>
+                  {fitnessClass.category && (
+                    <Tag
+                      size="md"
+                      colorScheme={getCategoryColor(fitnessClass.category.name)}
+                      borderRadius="full"
+                    >
+                      <TagLabel>{fitnessClass.category.name}</TagLabel>
+                    </Tag>
+                  )}
+                </VStack>
+              </Flex>
+            </CardHeader>
+
+            <CardBody pt={4}>
+              <VStack spacing={3} align="stretch">
+                <HStack>
+                  <Icon
+                    as={FaChalkboardTeacher}
+                    color={`${accentColor}.500`}
+                    boxSize={4}
+                  />
+                  <Text fontWeight="medium">
+                    {fitnessClass.instructor?.name || "Not specified"}
+                  </Text>
+                </HStack>
+
+                <HStack>
+                  <Icon
+                    as={CalendarIcon}
+                    color={`${accentColor}.500`}
+                    boxSize={4}
+                  />
+                  <Text fontSize="sm">
+                    {formatDateTime(fitnessClass.startsAt)}
+                  </Text>
+                </HStack>
+
+                <HStack>
+                  <Icon
+                    as={TimeIcon}
+                    color={`${accentColor}.500`}
+                    boxSize={4}
+                  />
+                  <Text fontSize="sm">
+                    to {formatDateTime(fitnessClass.endsAt)}
+                  </Text>
+                </HStack>
+
+                <HStack>
+                  <Icon as={FaUsers} color={`${accentColor}.500`} boxSize={4} />
+                  <Text fontSize="sm">
+                    Capacity: {fitnessClass.capacity} participants
+                  </Text>
+                </HStack>
+
+                {fitnessClass.gym && (
+                  <HStack>
+                    <Icon
+                      as={FaMapMarkerAlt}
+                      color={`${accentColor}.500`}
+                      boxSize={4}
+                    />
+                    <Text fontSize="sm" fontWeight="medium" isTruncated>
+                      {fitnessClass.gym.name}
+                    </Text>
+                  </HStack>
+                )}
+              </VStack>
+            </CardBody>
+
+            <Divider />
+
+            <CardFooter>
+              <VStack spacing={2} width="100%">
+                <Button
+                  colorScheme={accentColor}
+                  leftIcon={<FaCalendarCheck />}
+                  w="100%"
+                  onClick={() =>
+                    handleBookClass(fitnessClass.id, fitnessClass.name)
+                  }
+                  isLoading={bookingInProgress === fitnessClass.id}
+                  loadingText="Booking..."
+                  boxShadow="sm"
+                  _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}
+                  transition="all 0.2s"
                 >
-                  <TagLabel>{fitnessClass.category.name}</TagLabel>
-                </Tag>
-              )}
-            </VStack>
-          </Flex>
-        </CardHeader>
-
-        <CardBody pt={4}>
-          <VStack spacing={3} align="stretch">
-            <HStack>
-              <Icon
-                as={FaChalkboardTeacher}
-                color={`${accentColor}.500`}
-                boxSize={4}
-              />
-              <Text fontWeight="medium">
-                {fitnessClass.instructor?.name || "Not specified"}
-              </Text>
-            </HStack>
-
-            <HStack>
-              <Icon
-                as={CalendarIcon}
-                color={`${accentColor}.500`}
-                boxSize={4}
-              />
-              <Text fontSize="sm">{formatDateTime(fitnessClass.startsAt)}</Text>
-            </HStack>
-
-            <HStack>
-              <Icon as={TimeIcon} color={`${accentColor}.500`} boxSize={4} />
-              <Text fontSize="sm">
-                to {formatDateTime(fitnessClass.endsAt)}
-              </Text>
-            </HStack>
-
-            <HStack>
-              <Icon as={FaUsers} color={`${accentColor}.500`} boxSize={4} />
-              <Text fontSize="sm">
-                Capacity: {fitnessClass.capacity} participants
-              </Text>
-            </HStack>
-
-            {fitnessClass.gym && (
-              <HStack>
-                <Icon
-                  as={FaMapMarkerAlt}
-                  color={`${accentColor}.500`}
-                  boxSize={4}
-                />
-                <Text fontSize="sm" fontWeight="medium" isTruncated>
-                  {fitnessClass.gym.name}
-                </Text>
-              </HStack>
-            )}
-          </VStack>
-        </CardBody>
-
-        <Divider />
-
-        <CardFooter>
-          <VStack spacing={2} width="100%">
-            <Button
-              colorScheme={accentColor}
-              leftIcon={<FaCalendarCheck />}
-              w="100%"
-              onClick={() =>
-                handleBookClass(fitnessClass.id, fitnessClass.name)
-              }
-              isLoading={bookingInProgress === fitnessClass.id}
-              loadingText="Booking..."
-              boxShadow="sm"
-              _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}
-              transition="all 0.2s"
-            >
-              Book Now
-            </Button>
-            <Button
-              variant="outline"
-              colorScheme={accentColor}
-              leftIcon={<ViewIcon />}
-              w="100%"
-              onClick={() => handleViewDetails(fitnessClass.id)}
-              _hover={{ bg: `${accentColor}.50` }}
-            >
-              View Details
-            </Button>
-          </VStack>
-        </CardFooter>
-      </MotionCard>
-    ));
+                  Book Now
+                </Button>
+                <Button
+                  variant="outline"
+                  colorScheme={accentColor}
+                  leftIcon={<ViewIcon />}
+                  w="100%"
+                  onClick={() => handleViewDetails(fitnessClass.id)}
+                  _hover={{ bg: `${accentColor}.50` }}
+                >
+                  View Details
+                </Button>
+              </VStack>
+            </CardFooter>
+          </MotionCard>
+        ))}
+      </SimpleGrid>
+    );
   };
 
   return (
@@ -678,9 +700,7 @@ const ClassList = () => {
       </MotionCard>
 
       {/* Main Content - Class Cards */}
-      <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing={6} mb={8}>
-        {renderClassCards()}
-      </SimpleGrid>
+      {renderClassCards()}
 
       {/* Pagination */}
       {totalPages > 1 && (

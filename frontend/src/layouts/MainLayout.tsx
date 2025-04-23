@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -40,13 +40,17 @@ import {
   FaHeart,
   FaBuilding,
   FaPlus,
+  FaUser,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useGyms } from "../context/GymContext";
 import { UserRole } from "../types";
 import { motion } from "framer-motion";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState, useCallback } from "react";
 import RegisterGymModal from "../components/map/RegisterGymModal";
+import AppTour from "../components/common/AppTour";
+import * as api from "../services/api";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -73,6 +77,7 @@ const Logo = () => {
       display="flex"
       alignItems="center"
       justifyContent="center"
+      className="logo-element"
     >
       <Box mr={2} display="flex" alignItems="center">
         <StarIcon color="purple.500" />
@@ -169,9 +174,12 @@ const MainLayout = () => {
   const { user, logout } = useAuth();
   const { userHasGyms, checkUserHasGyms } = useGyms();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Add state and disclosure for RegisterGymModal
   const [isRegisterGymModalOpen, setIsRegisterGymModalOpen] = useState(false);
+  const [gymRegistrationSuccess, setGymRegistrationSuccess] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -197,8 +205,8 @@ const MainLayout = () => {
     },
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
@@ -211,7 +219,13 @@ const MainLayout = () => {
   const handleGymRegistrationSuccess = () => {
     // Refresh the user's gyms to update the navigation
     checkUserHasGyms();
+    setGymRegistrationSuccess(true);
   };
+
+  const handleOpenTour = useCallback(() => {
+    setShowTour(true);
+    onClose(); // Close the menu after selecting Help
+  }, [onClose]);
 
   const navItems = getNavItems(user?.role, userHasGyms);
 
@@ -333,7 +347,13 @@ const MainLayout = () => {
                     >
                       Profile
                     </MenuItem>
-                    <Divider borderColor={borderColor} />
+                    <MenuItem
+                      icon={<FaQuestionCircle />}
+                      onClick={handleOpenTour}
+                      _hover={{ bg: menuItemHoverBg }}
+                    >
+                      Help
+                    </MenuItem>
                     <MenuItem
                       onClick={handleLogout}
                       icon={<FaSignOutAlt />}
@@ -401,6 +421,17 @@ const MainLayout = () => {
                   Profile
                 </Button>
               </Link>
+              <Button
+                w="full"
+                variant="ghost"
+                colorScheme={buttonColorScheme}
+                justifyContent="flex-start"
+                leftIcon={<FaQuestionCircle />}
+                onClick={handleOpenTour}
+                _hover={{ bg: navHoverBg }}
+              >
+                Help
+              </Button>
               <Button
                 w="full"
                 variant="ghost"
@@ -493,6 +524,9 @@ const MainLayout = () => {
         onClose={() => setIsRegisterGymModalOpen(false)}
         onSuccess={handleGymRegistrationSuccess}
       />
+
+      {/* Add the AppTour component */}
+      <AppTour showTour={showTour} onClose={() => setShowTour(false)} />
     </Box>
   );
 };
