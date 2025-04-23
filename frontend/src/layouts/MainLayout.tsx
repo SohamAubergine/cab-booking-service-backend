@@ -145,6 +145,7 @@ const getNavItems = (
         { label: "Browse Classes", to: "/classes", icon: <FaDumbbell /> },
         { label: "My Bookings", to: "/my-bookings", icon: <FaCalendarCheck /> },
         { label: "Favorites", to: "/favorites", icon: <FaHeart /> },
+        { label: "My Gyms", to: "/my-gyms", icon: <FaBuilding /> },
       ];
 
       // Only add gyms button if user has gyms

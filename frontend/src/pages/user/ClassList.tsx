@@ -50,14 +50,22 @@ import {
   FaCalendarCheck,
   FaRegCalendarAlt,
   FaUsers,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { format } from "date-fns";
 import {
   fitnessClassService,
   categoryService,
   userService,
+  adminService,
 } from "../../services/api";
-import { FitnessClass, FitnessClassFilters, Category, User } from "../../types";
+import {
+  FitnessClass,
+  FitnessClassFilters,
+  Category,
+  User,
+  Gym,
+} from "../../types";
 import { useNavigate } from "react-router-dom";
 import Loading, { InlineLoading } from "../../components/Loading";
 import ErrorDisplay from "../../components/ErrorDisplay";
@@ -110,9 +118,11 @@ const ClassList = () => {
   const [classes, setClasses] = useState<FitnessClass[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [instructors, setInstructors] = useState<User[]>([]);
+  const [gyms, setGyms] = useState<Gym[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isInstructorsLoading, setIsInstructorsLoading] = useState(true);
+  const [isGymsLoading, setIsGymsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FitnessClassFilters>({
     page: 1,
@@ -168,14 +178,36 @@ const ClassList = () => {
     }
   };
 
+  const fetchGyms = async () => {
+    try {
+      setIsGymsLoading(true);
+      const response = await adminService.getGyms(1, 100);
+      if (response.success) {
+        setGyms(response.data.data);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch gyms";
+      console.error(errorMessage);
+      // Don't set global error for gyms - just show empty state
+    } finally {
+      setIsGymsLoading(false);
+    }
+  };
+
   const fetchClasses = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fitnessClassService.getClasses(filters);
+
+      // Create a copy of filters to send to the API
+      const apiFilters = { ...filters };
+
+      const response = await fitnessClassService.getClasses(apiFilters);
 
       if (response.success) {
-        setClasses(response.data.data);
+        let filteredClasses = response.data.data;
+        setClasses(filteredClasses);
         setTotalPages(response.data.meta.totalPages);
       } else {
         setError(response.message);
@@ -192,6 +224,7 @@ const ClassList = () => {
   useEffect(() => {
     fetchCategories();
     fetchInstructors();
+    fetchGyms();
   }, []);
 
   useEffect(() => {
@@ -266,6 +299,7 @@ const ClassList = () => {
       name: "",
       categoryId: undefined,
       instructorId: undefined,
+      gymId: undefined,
     });
   };
 
@@ -404,6 +438,19 @@ const ClassList = () => {
                 Capacity: {fitnessClass.capacity} participants
               </Text>
             </HStack>
+
+            {fitnessClass.gym && (
+              <HStack>
+                <Icon
+                  as={FaMapMarkerAlt}
+                  color={`${accentColor}.500`}
+                  boxSize={4}
+                />
+                <Text fontSize="sm" fontWeight="medium" isTruncated>
+                  {fitnessClass.gym.name}
+                </Text>
+              </HStack>
+            )}
           </VStack>
         </CardBody>
 
@@ -562,6 +609,39 @@ const ClassList = () => {
                     instructors.map((instructor) => (
                       <option key={instructor.id} value={instructor.id}>
                         {instructor.name}
+                      </option>
+                    ))
+                  )}
+                </Select>
+              </InputGroup>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel fontWeight="medium">Gym Location</FormLabel>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none">
+                  <Icon as={FaMapMarkerAlt} color="gray.400" />
+                </InputLeftElement>
+                <Select
+                  placeholder="Select a gym"
+                  value={filters.gymId || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      gymId: e.target.value || undefined,
+                      page: 1, // Reset to first page when filtering
+                    }))
+                  }
+                  isDisabled={isGymsLoading}
+                  pl={10}
+                  focusBorderColor={`${accentColor}.400`}
+                >
+                  {isGymsLoading ? (
+                    <option disabled>Loading gyms...</option>
+                  ) : (
+                    gyms.map((gym) => (
+                      <option key={gym.id} value={gym.id}>
+                        {gym.name}
                       </option>
                     ))
                   )}

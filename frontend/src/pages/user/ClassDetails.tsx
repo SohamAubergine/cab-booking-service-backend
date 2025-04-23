@@ -38,6 +38,7 @@ import {
   FaArrowLeft,
   FaCheckCircle,
   FaUsers,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { format } from "date-fns";
 import {
@@ -460,6 +461,66 @@ const ClassDetails = () => {
                             </Box>
                           </HStack>
                         </MotionBox>
+
+                        {/* Gym Information */}
+                        {fitnessClass.gym && (
+                          <MotionBox variants={itemVariants}>
+                            <Divider my={3} />
+                            <Box
+                              p={4}
+                              bg={useColorModeValue("teal.50", "teal.900")}
+                              borderRadius="md"
+                              boxShadow="sm"
+                              borderLeft="4px solid"
+                              borderColor="teal.400"
+                            >
+                              <Heading
+                                as="h3"
+                                size="sm"
+                                mb={2}
+                                color={useColorModeValue(
+                                  "teal.700",
+                                  "teal.200"
+                                )}
+                              >
+                                Gym Location
+                              </Heading>
+                              <VStack align="stretch" spacing={2}>
+                                <HStack spacing={3}>
+                                  <Icon
+                                    as={FaMapMarkerAlt}
+                                    boxSize={5}
+                                    color="teal.500"
+                                  />
+                                  <Box>
+                                    <Text fontWeight="bold" fontSize="md">
+                                      {fitnessClass.gym.name}
+                                    </Text>
+                                    <Text fontSize="sm">
+                                      {fitnessClass.gym.address}
+                                    </Text>
+                                  </Box>
+                                </HStack>
+                                {fitnessClass.gym.latitude &&
+                                  fitnessClass.gym.longitude && (
+                                    <Button
+                                      size="sm"
+                                      leftIcon={<Icon as={FaMapMarkerAlt} />}
+                                      variant="outline"
+                                      colorScheme="teal"
+                                      as="a"
+                                      href={`https://maps.google.com/?q=${fitnessClass.gym.latitude},${fitnessClass.gym.longitude}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      mt={2}
+                                    >
+                                      Get Directions
+                                    </Button>
+                                  )}
+                              </VStack>
+                            </Box>
+                          </MotionBox>
+                        )}
                       </VStack>
                     </CardBody>
                   </MotionCard>

@@ -88,6 +88,7 @@ export interface FitnessClassFilters {
   categoryId?: string;
   instructorId?: string;
   gymId?: string;
+  gymName?: string;
   startDateFrom?: string;
   startDateTo?: string;
 }
