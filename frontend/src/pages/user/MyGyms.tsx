@@ -28,6 +28,17 @@ import {
   Tooltip,
   IconButton,
   Stack,
+  HStack,
+  Grid,
+  GridItem,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+  Avatar,
+  AvatarBadge,
+  AspectRatio,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -40,8 +51,14 @@ import {
   FaInfoCircle,
   FaDirections,
   FaArrowRight,
+  FaList,
+  FaMapMarked,
+  FaEllipsisH,
+  FaRegClock,
+  FaStar,
+  FaUsers,
 } from "react-icons/fa";
-import { MdFitnessCenter, MdLocationOn } from "react-icons/md";
+import { MdFitnessCenter, MdLocationOn, MdGridView } from "react-icons/md";
 import { Gym, PaginatedResponse, UserRole } from "../../types";
 import {
   userService,
@@ -54,6 +71,32 @@ import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import RegisterGymModal from "../../components/map/RegisterGymModal";
 import CreateClassModal from "../../components/class/CreateClassModal";
+import { motion } from "framer-motion";
+
+// Create motion components
+const MotionBox = motion(Box);
+const MotionFlex = motion(Flex);
+const MotionCard = motion(Card);
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
 
 const MyGyms = () => {
   const [gyms, setGyms] = useState<Gym[]>([]);
@@ -69,16 +112,20 @@ const MyGyms = () => {
     totalItems: 0,
   });
   const [selectedGym, setSelectedGym] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const toast = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const cardBgColor = useColorModeValue("white", "gray.700");
-  const cardBorderColor = useColorModeValue("gray.200", "gray.600");
-  const badgeBgColor = useColorModeValue("teal.100", "teal.800");
-  const badgeColor = useColorModeValue("teal.800", "teal.100");
-  const headingColor = useColorModeValue("gray.700", "white");
-  const statBgColor = useColorModeValue("teal.50", "teal.900");
+
+  // Color scheme - updated to purple for new theme
+  const cardBgColor = useColorModeValue("white", "gray.800");
+  const cardBorderColor = useColorModeValue("purple.100", "purple.700");
+  const badgeBgColor = useColorModeValue("purple.100", "purple.800");
+  const badgeColor = useColorModeValue("purple.800", "purple.100");
+  const headingColor = useColorModeValue("purple.800", "purple.100");
+  const statBgColor = useColorModeValue("purple.50", "purple.900");
+  const accentColor = "purple";
   const gradientStart = useColorModeValue(
     "rgba(255,255,255,0.8)",
     "rgba(23,25,35,0.8)"
@@ -150,15 +197,6 @@ const MyGyms = () => {
         throw new Error(response.message || "Failed to load gyms");
       }
 
-      // Log the structure of the response data to debug
-      console.log("Response data structure:", {
-        hasData: !!response.data,
-        dataType: typeof response.data,
-        hasMeta: !!response.data?.meta,
-        hasDataArray: Array.isArray(response.data?.data),
-        dataLength: response.data?.data?.length || 0,
-      });
-
       // Handle potential response structure issues
       const paginatedData = response.data as PaginatedResponse<Gym>;
 
@@ -181,11 +219,6 @@ const MyGyms = () => {
         totalPages: metaData.totalPages,
         totalItems: metaData.total,
       });
-
-      // If we reached here but have no gyms, log a warning
-      if (gymData.length === 0) {
-        console.warn("No gyms found in response");
-      }
     } catch (err) {
       console.error("Error fetching gyms:", err);
 
@@ -243,27 +276,34 @@ const MyGyms = () => {
               My Gyms
             </Heading>
 
-            <Button
-              variant="solid"
-              colorScheme="teal"
-              leftIcon={<FaPlus />}
-              isLoading={true}
-              mb={2}
-              size="md"
-            >
-              Register Gym
-            </Button>
+            <Skeleton height="40px" width="150px" />
           </Flex>
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index} boxShadow="md" height="100%">
+              <Card
+                key={index}
+                boxShadow="lg"
+                height="100%"
+                borderWidth="1px"
+                borderColor={cardBorderColor}
+                borderRadius="xl"
+              >
+                <Skeleton height="200px" />
                 <CardHeader>
-                  <SkeletonText mt="4" noOfLines={2} spacing="4" />
+                  <SkeletonText
+                    mt="2"
+                    noOfLines={1}
+                    spacing="4"
+                    skeletonHeight="6"
+                  />
                 </CardHeader>
-                <CardBody>
-                  <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                <CardBody pt={0}>
+                  <SkeletonText mt="2" noOfLines={3} spacing="4" />
                 </CardBody>
+                <CardFooter>
+                  <Skeleton height="40px" width="100%" />
+                </CardFooter>
               </Card>
             ))}
           </SimpleGrid>
@@ -298,34 +338,47 @@ const MyGyms = () => {
   if (gyms.length === 0) {
     return (
       <Container maxW="container.xl" py={8}>
-        <VStack spacing={6} align="stretch">
-          <Flex justify="space-between" align="center" wrap="wrap">
+        <MotionBox
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          <MotionFlex
+            justify="space-between"
+            align="center"
+            wrap="wrap"
+            variants={itemVariants}
+            mb={8}
+          >
             <Heading as="h1" size="xl" color={headingColor} mb={2}>
               {pageTitle}
             </Heading>
 
             <Button
               variant="solid"
-              colorScheme="teal"
+              colorScheme={accentColor}
               leftIcon={<FaPlus />}
               onClick={openRegisterGymModal}
               mb={2}
               size="md"
+              boxShadow="md"
               _hover={{
                 transform: "translateY(-2px)",
-                boxShadow: "lg",
+                boxShadow: "xl",
               }}
             >
               Register Gym
             </Button>
-          </Flex>
+          </MotionFlex>
 
-          <EmptyState
-            title={emptyStateTitle}
-            message={emptyStateMessage}
-            icon={FaBuilding}
-          />
-        </VStack>
+          <MotionBox variants={itemVariants}>
+            <EmptyState
+              title={emptyStateTitle}
+              message={emptyStateMessage}
+              icon={FaBuilding}
+            />
+          </MotionBox>
+        </MotionBox>
 
         <RegisterGymModal
           isOpen={isRegisterGymModalOpen}
@@ -346,220 +399,463 @@ const MyGyms = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Box
-        position="relative"
-        height="240px"
-        mb={10}
-        borderRadius="xl"
-        overflow="hidden"
-        backgroundImage="url('https://images.unsplash.com/photo-1598136490937-cac234183aba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2369&q=80')"
-        backgroundSize="cover"
-        backgroundPosition="center"
+      <MotionBox
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
       >
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          width="100%"
-          height="100%"
-          background={`linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`}
-          zIndex={1}
-        />
-        <Box
-          position="absolute"
-          bottom={6}
-          left={6}
-          right={6}
-          zIndex={2}
-          display="flex"
-          flexDirection="column"
+        {/* Hero Section */}
+        <MotionBox
+          position="relative"
+          height={{ base: "200px", md: "280px" }}
+          mb={10}
+          borderRadius="2xl"
+          overflow="hidden"
+          boxShadow="xl"
+          variants={itemVariants}
         >
-          <Heading color={headingColor} size="xl" mb={2}>
-            {pageTitle}
-          </Heading>
-          <Text fontSize="lg" color="gray.600">
-            {user.role === UserRole.INSTRUCTOR ? (
-              <Flex align="center">
-                <Icon as={FaGraduationCap} mr={2} color="teal.400" />
-                Manage your teaching locations and schedule classes for your
-                students
-              </Flex>
-            ) : (
-              <Flex align="center">
-                <Icon as={FaGym} mr={2} color="teal.400" />
-                Manage your gyms, create fitness classes, and track activity
-              </Flex>
-            )}
-          </Text>
-          <Flex mt={4} justify="space-between" align="center">
-            <Box>
-              <Stat
-                backgroundColor={statBgColor}
-                p={2}
-                borderRadius="md"
-                minW="140px"
-              >
-                <StatLabel fontSize="xs">
-                  Total{" "}
-                  {user.role === UserRole.INSTRUCTOR ? "Locations" : "Gyms"}
-                </StatLabel>
-                <StatNumber>{pagination.totalItems}</StatNumber>
-                <StatHelpText>
-                  <Flex align="center">
-                    <Icon as={FaCalendarAlt} mr={1} />
-                    {new Date().toLocaleDateString()}
-                  </Flex>
-                </StatHelpText>
-              </Stat>
-            </Box>
-            <Button
-              variant="solid"
-              colorScheme="teal"
-              leftIcon={<FaPlus />}
-              onClick={openRegisterGymModal}
-              size="md"
-              _hover={{
-                transform: "translateY(-2px)",
-                boxShadow: "lg",
-              }}
-              zIndex={2}
-            >
-              Register New Gym
-            </Button>
-          </Flex>
-        </Box>
-      </Box>
-
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} mb={8}>
-        {gyms.map((gym) => (
-          <Card
-            key={gym.id}
-            bg={cardBgColor}
-            borderWidth="1px"
-            borderColor={cardBorderColor}
-            borderRadius="lg"
-            overflow="hidden"
-            boxShadow="md"
-            transition="all 0.3s"
-            _hover={{ transform: "translateY(-5px)", boxShadow: "lg" }}
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            width="100%"
+            height="100%"
+            backgroundImage="url('https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=1974&auto=format&fit=crop')"
+            backgroundSize="cover"
+            backgroundPosition="center"
+            filter="brightness(0.8)"
+          />
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            width="100%"
+            height="100%"
+            bgGradient={`linear(to-r, ${useColorModeValue(
+              "purple.700",
+              "purple.900"
+            )}CC, ${useColorModeValue("purple.500", "purple.700")}99)`}
+          />
+          <Flex
             position="relative"
+            zIndex={1}
+            height="100%"
+            direction="column"
+            justify="flex-end"
+            p={{ base: 4, md: 8 }}
           >
-            <Box
-              h="140px"
-              bg="gray.200"
-              position="relative"
-              backgroundImage={`url('https://source.unsplash.com/random/400x200/?gym,fitness&${gym.id}')`}
-              backgroundSize="cover"
-              backgroundPosition="center"
+            <MotionBox
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { delay: 0.1, duration: 0.6 },
+                },
+              }}
             >
-              <Box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                bg="blackAlpha.300"
-              />
               <Badge
-                position="absolute"
-                top={3}
-                right={3}
-                bg={badgeBgColor}
-                color={badgeColor}
-                fontSize="0.8em"
+                mb={3}
+                colorScheme={accentColor}
+                variant="solid"
+                fontSize="sm"
                 borderRadius="full"
                 px={3}
                 py={1}
-                fontWeight="medium"
               >
-                {user?.role === UserRole.INSTRUCTOR
-                  ? "Teaching Location"
-                  : "Owner"}
+                {user.role === UserRole.INSTRUCTOR ? "Instructor" : "Gym Owner"}
               </Badge>
-            </Box>
-
-            <CardHeader pb={0}>
-              <Heading as="h3" size="md" mb={1}>
-                {gym.name}
+              <Heading color="white" size="2xl" fontWeight="bold" mb={2}>
+                {pageTitle}
               </Heading>
-              <Flex alignItems="center" mb={2}>
-                <Icon as={MdLocationOn} color="teal.500" mr={1} />
-                <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                  {gym.address}
-                </Text>
-              </Flex>
-            </CardHeader>
-
-            <CardBody pt={2}>
-              <VStack align="start" spacing={3}>
-                {gym.owner && (
-                  <Flex alignItems="center" width="100%">
-                    <Icon as={FaUser} mr={2} color="teal.500" />
-                    <Text fontSize="sm">
-                      <Text as="span" fontWeight="medium">
-                        Owner:
-                      </Text>{" "}
-                      {gym.owner.name}
-                    </Text>
+              <Text fontSize="lg" color="whiteAlpha.900" maxW="700px">
+                {user.role === UserRole.INSTRUCTOR ? (
+                  <Flex align="center">
+                    <Icon as={FaGraduationCap} mr={2} color="white" />
+                    Manage your teaching locations and schedule classes for your
+                    students
+                  </Flex>
+                ) : (
+                  <Flex align="center">
+                    <Icon as={FaGym} mr={2} color="white" />
+                    Manage your gyms, create fitness classes, and track activity
                   </Flex>
                 )}
+              </Text>
+            </MotionBox>
 
-                <Divider />
+            <MotionFlex
+              mt={{ base: 4, md: 6 }}
+              width="100%"
+              justify="space-between"
+              align={{ base: "flex-start", md: "center" }}
+              direction={{ base: "column", md: "row" }}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { delay: 0.2, duration: 0.6 },
+                },
+              }}
+            >
+              <HStack mb={{ base: 4, md: 0 }}>
+                <Stat
+                  backgroundColor="whiteAlpha.300"
+                  p={3}
+                  borderRadius="lg"
+                  minW={{ base: "auto", md: "180px" }}
+                  backdropFilter="blur(10px)"
+                >
+                  <StatLabel color="whiteAlpha.800" fontSize="xs">
+                    Total{" "}
+                    {user.role === UserRole.INSTRUCTOR ? "Locations" : "Gyms"}
+                  </StatLabel>
+                  <StatNumber
+                    color="white"
+                    fontSize={{ base: "2xl", md: "3xl" }}
+                  >
+                    {pagination.totalItems}
+                  </StatNumber>
+                  <StatHelpText color="whiteAlpha.800" mb={0}>
+                    <Flex align="center">
+                      <Icon as={FaCalendarAlt} mr={1} />
+                      {new Date().toLocaleDateString()}
+                    </Flex>
+                  </StatHelpText>
+                </Stat>
+              </HStack>
+              <Box>
+                <Button
+                  variant="solid"
+                  bg="white"
+                  color={`${accentColor}.600`}
+                  leftIcon={<FaPlus />}
+                  onClick={openRegisterGymModal}
+                  size="md"
+                  _hover={{
+                    transform: "translateY(-2px)",
+                    boxShadow: "xl",
+                    bg: "whiteAlpha.900",
+                  }}
+                  boxShadow="md"
+                >
+                  Register New Gym
+                </Button>
+              </Box>
+            </MotionFlex>
+          </Flex>
+        </MotionBox>
 
-                <Flex width="100%" justify="space-between">
-                  <Tooltip label="View gym details">
-                    <Button
-                      as={Link}
-                      to={`/gyms/${gym.id}`}
-                      colorScheme="teal"
-                      variant="outline"
-                      size="sm"
-                      leftIcon={<FaInfoCircle />}
-                      flex="1"
-                      mr={2}
-                    >
-                      Details
-                    </Button>
-                  </Tooltip>
+        {/* View Controls */}
+        <MotionFlex
+          justify="space-between"
+          align="center"
+          mb={6}
+          variants={itemVariants}
+        >
+          <Tabs
+            variant="soft-rounded"
+            colorScheme={accentColor}
+            size="sm"
+            onChange={(index) => setViewMode(index === 0 ? "grid" : "list")}
+          >
+            <TabList>
+              <Tab>
+                <Icon as={MdGridView} mr={2} /> Grid
+              </Tab>
+              <Tab>
+                <Icon as={FaList} mr={2} /> List
+              </Tab>
+            </TabList>
+          </Tabs>
 
-                  <Tooltip label={`Create a fitness class at ${gym.name}`}>
-                    <Button
-                      colorScheme="teal"
-                      size="sm"
-                      leftIcon={<FaPlus />}
-                      onClick={() => handleCreateClass(gym.id)}
-                      flex="1"
-                    >
-                      Add Class
-                    </Button>
-                  </Tooltip>
-                </Flex>
-              </VStack>
-            </CardBody>
+          <Text color="gray.500" fontSize="sm">
+            Showing {gyms.length} of {pagination.totalItems} gyms
+          </Text>
+        </MotionFlex>
 
-            <CardFooter pt={0} pb={4} px={4}>
-              <Button
-                variant="ghost"
-                colorScheme="teal"
-                size="sm"
-                width="full"
-                rightIcon={<FaArrowRight />}
-                onClick={() => navigate(`/gyms/${gym.id}/classes`)}
+        {/* Gyms Grid View */}
+        {viewMode === "grid" && (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
+            {gyms.map((gym, index) => (
+              <MotionCard
+                key={gym.id}
+                variants={itemVariants}
+                bg={cardBgColor}
+                borderWidth="1px"
+                borderColor={cardBorderColor}
+                borderRadius="xl"
+                overflow="hidden"
+                boxShadow="lg"
+                transition="all 0.3s"
+                _hover={{ transform: "translateY(-5px)", boxShadow: "xl" }}
+                position="relative"
+                height="100%"
               >
-                View Classes
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </SimpleGrid>
+                <AspectRatio ratio={16 / 9}>
+                  <Box
+                    bgImage={`url('https://source.unsplash.com/random/600x400/?gym,fitness&${gym.id}')`}
+                    bgSize="cover"
+                    bgPosition="center"
+                    position="relative"
+                  >
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      bg="blackAlpha.300"
+                    />
+                    <Badge
+                      position="absolute"
+                      top={3}
+                      right={3}
+                      bg={`${accentColor}.500`}
+                      color="white"
+                      fontSize="0.8em"
+                      borderRadius="full"
+                      px={3}
+                      py={1}
+                      fontWeight="medium"
+                      boxShadow="sm"
+                    >
+                      {user?.role === UserRole.INSTRUCTOR
+                        ? "Teaching Location"
+                        : "Owner"}
+                    </Badge>
+                  </Box>
+                </AspectRatio>
 
-      {pagination.totalPages > 1 && (
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
+                <CardHeader pb={0}>
+                  <Heading as="h3" size="md" mb={1}>
+                    {gym.name}
+                  </Heading>
+                  <Flex alignItems="center" mb={2}>
+                    <Icon
+                      as={MdLocationOn}
+                      color={`${accentColor}.500`}
+                      mr={1}
+                    />
+                    <Text fontSize="sm" color="gray.500" noOfLines={1}>
+                      {gym.address}
+                    </Text>
+                  </Flex>
+                </CardHeader>
+
+                <CardBody pt={2}>
+                  <VStack align="start" spacing={3}>
+                    {gym.owner && (
+                      <Flex alignItems="center" width="100%">
+                        <Avatar size="xs" mr={2} name={gym.owner.name}>
+                          <AvatarBadge
+                            boxSize="1em"
+                            bg={`${accentColor}.500`}
+                          />
+                        </Avatar>
+                        <Text fontSize="sm">
+                          <Text as="span" fontWeight="medium">
+                            Owner:
+                          </Text>{" "}
+                          {gym.owner.name}
+                        </Text>
+                      </Flex>
+                    )}
+
+                    <Divider />
+
+                    <Flex width="100%" justify="space-between">
+                      <Tooltip label="View gym details">
+                        <Button
+                          as={Link}
+                          to={`/gyms/${gym.id}`}
+                          colorScheme={accentColor}
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<FaInfoCircle />}
+                          flex="1"
+                          mr={2}
+                        >
+                          Details
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip label={`Create a fitness class at ${gym.name}`}>
+                        <Button
+                          colorScheme={accentColor}
+                          size="sm"
+                          leftIcon={<FaPlus />}
+                          onClick={() => handleCreateClass(gym.id)}
+                          flex="1"
+                        >
+                          Add Class
+                        </Button>
+                      </Tooltip>
+                    </Flex>
+                  </VStack>
+                </CardBody>
+
+                <CardFooter pt={0} pb={4} px={4}>
+                  <Button
+                    variant="ghost"
+                    colorScheme={accentColor}
+                    size="sm"
+                    width="full"
+                    rightIcon={<FaArrowRight />}
+                    onClick={() => navigate(`/gyms/${gym.id}/classes`)}
+                  >
+                    View Classes
+                  </Button>
+                </CardFooter>
+              </MotionCard>
+            ))}
+          </SimpleGrid>
+        )}
+
+        {/* Gyms List View */}
+        {viewMode === "list" && (
+          <VStack spacing={4} align="stretch" mb={8}>
+            {gyms.map((gym, index) => (
+              <MotionCard
+                key={gym.id}
+                variants={itemVariants}
+                bg={cardBgColor}
+                borderWidth="1px"
+                borderColor={cardBorderColor}
+                borderRadius="xl"
+                overflow="hidden"
+                boxShadow="md"
+                transition="all 0.3s"
+                _hover={{
+                  transform: "translateY(-2px)",
+                  boxShadow: "lg",
+                  borderColor: `${accentColor}.300`,
+                }}
+              >
+                <Grid
+                  templateColumns={{ base: "1fr", md: "200px 1fr" }}
+                  gap={4}
+                >
+                  <GridItem>
+                    <Box
+                      h={{ base: "180px", md: "100%" }}
+                      bgImage={`url('https://source.unsplash.com/random/600x400/?gym,fitness&${gym.id}')`}
+                      bgSize="cover"
+                      bgPosition="center"
+                      position="relative"
+                    >
+                      <Badge
+                        position="absolute"
+                        top={3}
+                        left={3}
+                        bg={`${accentColor}.500`}
+                        color="white"
+                        fontSize="0.8em"
+                        borderRadius="full"
+                        px={3}
+                        py={1}
+                        fontWeight="medium"
+                        boxShadow="sm"
+                      >
+                        {user?.role === UserRole.INSTRUCTOR
+                          ? "Teaching Location"
+                          : "Owner"}
+                      </Badge>
+                    </Box>
+                  </GridItem>
+                  <GridItem p={4}>
+                    <Flex direction="column" h="100%">
+                      <Flex justify="space-between" align="center" mb={2}>
+                        <Heading as="h3" size="md">
+                          {gym.name}
+                        </Heading>
+                        <IconButton
+                          aria-label="More options"
+                          icon={<FaEllipsisH />}
+                          variant="ghost"
+                          colorScheme={accentColor}
+                          size="sm"
+                        />
+                      </Flex>
+                      <Flex alignItems="center" mb={3}>
+                        <Icon
+                          as={MdLocationOn}
+                          color={`${accentColor}.500`}
+                          mr={1}
+                        />
+                        <Text fontSize="sm" color="gray.500">
+                          {gym.address}
+                        </Text>
+                      </Flex>
+
+                      {gym.owner && (
+                        <Flex alignItems="center" mb={3}>
+                          <Avatar size="xs" mr={2} name={gym.owner.name}>
+                            <AvatarBadge
+                              boxSize="1em"
+                              bg={`${accentColor}.500`}
+                            />
+                          </Avatar>
+                          <Text fontSize="sm">
+                            <Text as="span" fontWeight="medium">
+                              Owner:
+                            </Text>{" "}
+                            {gym.owner.name}
+                          </Text>
+                        </Flex>
+                      )}
+
+                      <Flex flex="1" />
+
+                      <Flex mt={4} flexWrap="wrap" gap={2}>
+                        <Button
+                          as={Link}
+                          to={`/gyms/${gym.id}`}
+                          colorScheme={accentColor}
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<FaInfoCircle />}
+                        >
+                          Details
+                        </Button>
+                        <Button
+                          colorScheme={accentColor}
+                          size="sm"
+                          leftIcon={<FaPlus />}
+                          onClick={() => handleCreateClass(gym.id)}
+                          mr={2}
+                        >
+                          Add Class
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          colorScheme={accentColor}
+                          size="sm"
+                          rightIcon={<FaArrowRight />}
+                          onClick={() => navigate(`/gyms/${gym.id}/classes`)}
+                        >
+                          View Classes
+                        </Button>
+                      </Flex>
+                    </Flex>
+                  </GridItem>
+                </Grid>
+              </MotionCard>
+            ))}
+          </VStack>
+        )}
+
+        {pagination.totalPages > 1 && (
+          <MotionBox variants={itemVariants} mb={6}>
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </MotionBox>
+        )}
+      </MotionBox>
 
       {/* Register Gym Modal */}
       <RegisterGymModal

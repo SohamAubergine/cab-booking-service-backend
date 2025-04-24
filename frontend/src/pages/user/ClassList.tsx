@@ -181,7 +181,8 @@ const ClassList = () => {
   const fetchGyms = async () => {
     try {
       setIsGymsLoading(true);
-      const response = await adminService.getGyms(1, 100);
+      // Use the proper API endpoint for users and instructors
+      const response = await userService.getGyms(1, 100);
       if (response.success) {
         setGyms(response.data.data);
       }

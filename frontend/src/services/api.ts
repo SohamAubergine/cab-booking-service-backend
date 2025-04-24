@@ -214,6 +214,42 @@ export const userService = {
     }
   },
 
+  // Get all available gyms (for public listings like class filters)
+  getGyms: async (
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<PaginatedResponse<Gym>>> => {
+    try {
+      const response = await api.get<ApiResponse<PaginatedResponse<Gym>>>(
+        "/gyms",
+        {
+          params: { page, limit },
+        }
+      );
+
+      console.log("Raw getGyms API response:", response);
+
+      return response.data;
+    } catch (error) {
+      console.error("Error getting gyms:", error);
+
+      // Return a fallback response instead of throwing
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to load gyms",
+        data: {
+          data: [],
+          meta: {
+            total: 0,
+            page: page,
+            limit: limit,
+            totalPages: 0,
+          },
+        },
+      };
+    }
+  },
+
   getUserGyms: async (
     page: number = 1,
     limit: number = 10
