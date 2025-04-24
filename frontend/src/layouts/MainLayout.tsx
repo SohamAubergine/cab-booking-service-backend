@@ -154,13 +154,13 @@ const getNavItems = (
       ];
 
       // Only add gyms button if user has gyms
-      if (hasGyms) {
-        userItems.push({
-          label: "My Gyms",
-          to: "/my-gyms",
-          icon: <FaBuilding />,
-        });
-      }
+      // if (hasGyms) {
+      //   userItems.push({
+      //     label: "My Gyms",
+      //     to: "/my-gyms",
+      //     icon: <FaBuilding />,
+      //   });
+      // }
 
       return userItems;
     default:
