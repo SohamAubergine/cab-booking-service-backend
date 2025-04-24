@@ -171,7 +171,15 @@ export const getAllFitnessClasses = catchAsync(
 
     // Gym filter
     if (query.gymId) {
-      filterConditions.gymId = query.gymId
+      if (Array.isArray(query.gymId)) {
+        // Handle array of gym IDs with an 'IN' condition
+        filterConditions.gymId = {
+          in: query.gymId,
+        }
+      } else {
+        // Handle single gym ID
+        filterConditions.gymId = query.gymId
+      }
     }
 
     // Date range filters
@@ -259,7 +267,15 @@ export const getAvailableFitnessClasses = catchAsync(
 
     // Gym filter
     if (query.gymId) {
-      filterConditions.gymId = query.gymId
+      if (Array.isArray(query.gymId)) {
+        // Handle array of gym IDs with an 'IN' condition
+        filterConditions.gymId = {
+          in: query.gymId,
+        }
+      } else {
+        // Handle single gym ID
+        filterConditions.gymId = query.gymId
+      }
     }
 
     // Additional date range filter (if provided)

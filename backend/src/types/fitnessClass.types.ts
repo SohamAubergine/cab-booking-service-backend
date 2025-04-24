@@ -126,7 +126,8 @@ export interface FitnessClassQueryParams extends FitnessClassFilters {
   limit?: string
 
   /**
-   * ID of the gym where the class will be held
+   * ID of the gym(s) where the class will be held
+   * Can be a single ID or an array of IDs
    */
-  gymId?: string
+  gymId?: string | string[]
 }

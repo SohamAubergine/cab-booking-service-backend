@@ -167,7 +167,7 @@
                 {
                   "key": "gymId",
                   "value": "",
-                  "description": "Filter by gym ID (optional)",
+                  "description": "Filter by gym ID (single ID or comma-separated list of IDs)",
                   "disabled": true
                 },
                 {
