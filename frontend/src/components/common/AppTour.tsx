@@ -158,7 +158,7 @@ const AppTour = ({ showTour, onClose }: AppTourProps) => {
 
     // Dynamically check for page-specific elements
     const dynamicSteps: TourStep[] = [];
-    
+
     if (document.querySelector(".fitness-classes")) {
       dynamicSteps.push(
         createTourStep(
@@ -170,7 +170,7 @@ const AppTour = ({ showTour, onClose }: AppTourProps) => {
         )
       );
     }
-    
+
     if (document.querySelector(".bookings-list")) {
       dynamicSteps.push(
         createTourStep(
@@ -182,7 +182,7 @@ const AppTour = ({ showTour, onClose }: AppTourProps) => {
         )
       );
     }
-    
+
     if (document.querySelector(".gym-list")) {
       dynamicSteps.push(
         createTourStep(
@@ -196,7 +196,11 @@ const AppTour = ({ showTour, onClose }: AppTourProps) => {
     }
 
     // Combine all steps
-    const allSteps: TourStep[] = [...commonSteps, ...roleSpecificSteps, ...dynamicSteps];
+    const allSteps: TourStep[] = [
+      ...commonSteps,
+      ...roleSpecificSteps,
+      ...dynamicSteps,
+    ];
 
     // Filter out steps with non-existent elements
     const validSteps = allSteps.filter((step) => {

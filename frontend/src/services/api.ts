@@ -239,9 +239,27 @@ export const userService = {
         };
       }
 
-      // Using the common /gyms endpoint instead of /users/me/gyms
+      // Determine the endpoint based on user role
+      let endpoint = "/users/me/gyms"; // Default endpoint for user or instructor
+
+      try {
+        const userJson = localStorage.getItem("user");
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          if (user.role === "ADMIN") {
+            console.log("User is ADMIN, using admin endpoint for gyms");
+            // Use the admin endpoint directly
+            return adminService.getGyms(page, limit);
+          } else {
+            console.log(`User is ${user.role}, using user gyms endpoint`);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing user data from localStorage:", error);
+      }
+
       const response = await api.get<ApiResponse<PaginatedResponse<Gym>>>(
-        "/gyms",
+        endpoint,
         {
           params: { page, limit },
           headers: {
@@ -250,7 +268,7 @@ export const userService = {
         }
       );
 
-      console.log("Raw getUserGyms API response:", response);
+      console.log(`Raw getUserGyms API response from ${endpoint}:`, response);
 
       // Ensure the response follows expected structure
       if (response?.data && !response.data.success) {
@@ -489,9 +507,12 @@ export const fitnessClassService = {
     filters?: FitnessClassFilters
   ): Promise<ApiResponse<PaginatedResponse<FitnessClass>>> => {
     try {
-      const response = await api.get<
+      // This endpoint should be public, so we don't need to pass authentication headers
+      const response = await axios.get<
         ApiResponse<PaginatedResponse<FitnessClass>>
-      >(`/gyms/${gymId}/fitness-classes`, { params: filters });
+      >(`${API_URL}/gyms/${gymId}/fitness-classes`, {
+        params: filters,
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching gym classes:", error);
@@ -597,52 +618,8 @@ export const adminService = {
 
   createGym: async (gymData: CreateGymRequest): Promise<ApiResponse<Gym>> => {
     try {
-      try {
-        const response = await adminApi.post<ApiResponse<Gym>>(
-          "/gyms",
-          gymData
-        );
-        return response.data;
-      } catch (apiError) {
-        // If the endpoint doesn't exist (404), create a mock response
-        if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
-          console.warn(
-            "Gym creation API endpoint not available, using mock implementation"
-          );
-
-          // Create a mock gym with the provided data
-          const mockGym: Gym = {
-            id: `gym-${Date.now()}`, // Generate unique ID
-            name: gymData.name,
-            address: gymData.address,
-            latitude: gymData.latitude,
-            longitude: gymData.longitude,
-            ownerId: gymData.ownerId || "current-user-id", // Use provided ownerId or default
-            // Optional owner data
-            owner: gymData.ownerId
-              ? {
-                  id: gymData.ownerId,
-                  name: "Mock Owner",
-                  email: "owner@example.com",
-                  role: "ADMIN" as any, // Cast to any to avoid type issues
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                }
-              : undefined,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-
-          return {
-            success: true,
-            message: "Mock gym created successfully",
-            data: mockGym,
-          };
-        }
-
-        // If not a 404, rethrow the error
-        throw apiError;
-      }
+      const response = await adminApi.post<ApiResponse<Gym>>("/gyms", gymData);
+      return response.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -929,29 +906,46 @@ export const adminService = {
     }
   },
 
+  // Create a fitness class for a specific gym
   createClass: async (
-    data: CreateFitnessClassRequest
+    classData: CreateFitnessClassRequest
   ): Promise<ApiResponse<FitnessClass>> => {
     try {
-      console.log(
-        "Creating fitness class with data:",
-        JSON.stringify(data, null, 2)
-      );
+      try {
+        // First attempt to use the specific gym endpoint
+        const response = await api.post<ApiResponse<FitnessClass>>(
+          `/gyms/${classData.gymId}/fitness-classes`,
+          classData
+        );
+        return response.data;
+      } catch (apiError) {
+        // If 404, try the admin endpoint
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
+          console.warn(
+            "Gym-specific fitness class creation endpoint not available, falling back to admin endpoint"
+          );
 
-      const response = await adminApi.post<ApiResponse<FitnessClass>>(
-        "/fitness-classes",
-        data
-      );
+          const response = await adminApi.post<ApiResponse<FitnessClass>>(
+            "/fitness-classes",
+            classData
+          );
+          return response.data;
+        }
 
-      console.log("Create class response:", response.data);
-      return response.data;
+        // If authentication error, return appropriate message
+        if (axios.isAxiosError(apiError) && apiError.response?.status === 401) {
+          return {
+            success: false,
+            message: "Authentication token is invalid or expired",
+            data: {} as FitnessClass,
+          };
+        }
+
+        // If not a 404, rethrow the error
+        throw apiError;
+      }
     } catch (error) {
       console.error("Error creating fitness class:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        console.error("Server response:", error.response.data);
-        console.error("Status code:", error.response.status);
-        console.error("Headers:", error.response.headers);
-      }
       throw handleApiError(error);
     }
   },
@@ -1054,10 +1048,10 @@ export const instructorService = {
         };
       }
 
-      // Using the common /gyms endpoint instead of /instructors/gyms
+      // Use instructor-specific endpoint
       const response = await api.get<
         ApiResponse<PaginatedResponse<Gym & { classCount: number }>>
-      >("/gyms", {
+      >("/instructors/gyms", {
         params: { page, limit },
         headers: {
           Authorization: `Bearer ${token}`,
