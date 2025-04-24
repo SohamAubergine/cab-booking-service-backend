@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -39,12 +39,18 @@ import {
   FaUserFriends,
   FaHeart,
   FaBuilding,
+  FaPlus,
+  FaUser,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useGyms } from "../context/GymContext";
 import { UserRole } from "../types";
 import { motion } from "framer-motion";
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useEffect, useState, useCallback } from "react";
+import RegisterGymModal from "../components/map/RegisterGymModal";
+import AppTour from "../components/common/AppTour";
+import * as api from "../services/api";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -71,6 +77,7 @@ const Logo = () => {
       display="flex"
       alignItems="center"
       justifyContent="center"
+      className="logo-element"
     >
       <Box mr={2} display="flex" alignItems="center">
         <StarIcon color="purple.500" />
@@ -112,7 +119,7 @@ const getNavItems = (
     case UserRole.ADMIN:
       return [
         ...commonItems,
-        { label: "Dashboard", to: "/admin/dashboard", icon: <FaUserCircle /> },
+        // { label: "Dashboard", to: "/admin/dashboard", icon: <FaUserCircle /> },
         { label: "Manage Classes", to: "/admin/classes", icon: <FaDumbbell /> },
         { label: "Manage Gyms", to: "/admin/gyms", icon: <FaBuilding /> },
       ];
@@ -139,10 +146,11 @@ const getNavItems = (
     case UserRole.USER:
       const userItems = [
         ...commonItems,
-        { label: "Dashboard", to: "/user/dashboard", icon: <FaUserCircle /> },
+        // { label: "Dashboard", to: "/user/dashboard", icon: <FaUserCircle /> },
         { label: "Browse Classes", to: "/classes", icon: <FaDumbbell /> },
         { label: "My Bookings", to: "/my-bookings", icon: <FaCalendarCheck /> },
         { label: "Favorites", to: "/favorites", icon: <FaHeart /> },
+        { label: "My Gyms", to: "/my-gyms", icon: <FaBuilding /> },
       ];
 
       // Only add gyms button if user has gyms
@@ -166,6 +174,12 @@ const MainLayout = () => {
   const { user, logout } = useAuth();
   const { userHasGyms, checkUserHasGyms } = useGyms();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Add state and disclosure for RegisterGymModal
+  const [isRegisterGymModalOpen, setIsRegisterGymModalOpen] = useState(false);
+  const [gymRegistrationSuccess, setGymRegistrationSuccess] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -191,10 +205,27 @@ const MainLayout = () => {
     },
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
+
+  // Handle opening the register gym modal
+  const handleOpenRegisterGym = () => {
+    setIsRegisterGymModalOpen(true);
+  };
+
+  // Handle successful gym registration
+  const handleGymRegistrationSuccess = () => {
+    // Refresh the user's gyms to update the navigation
+    checkUserHasGyms();
+    setGymRegistrationSuccess(true);
+  };
+
+  const handleOpenTour = useCallback(() => {
+    setShowTour(true);
+    onClose(); // Close the menu after selecting Help
+  }, [onClose]);
 
   const navItems = getNavItems(user?.role, userHasGyms);
 
@@ -316,7 +347,13 @@ const MainLayout = () => {
                     >
                       Profile
                     </MenuItem>
-                    <Divider borderColor={borderColor} />
+                    <MenuItem
+                      icon={<FaQuestionCircle />}
+                      onClick={handleOpenTour}
+                      _hover={{ bg: menuItemHoverBg }}
+                    >
+                      Help
+                    </MenuItem>
                     <MenuItem
                       onClick={handleLogout}
                       icon={<FaSignOutAlt />}
@@ -370,6 +407,7 @@ const MainLayout = () => {
                   </Button>
                 </Link>
               ))}
+
               <Divider my={2} borderColor={borderColor} />
               <Link to="/profile" onClick={onClose}>
                 <Button
@@ -383,6 +421,17 @@ const MainLayout = () => {
                   Profile
                 </Button>
               </Link>
+              <Button
+                w="full"
+                variant="ghost"
+                colorScheme={buttonColorScheme}
+                justifyContent="flex-start"
+                leftIcon={<FaQuestionCircle />}
+                onClick={handleOpenTour}
+                _hover={{ bg: navHoverBg }}
+              >
+                Help
+              </Button>
               <Button
                 w="full"
                 variant="ghost"
@@ -468,6 +517,16 @@ const MainLayout = () => {
           </Flex>
         </Container>
       </MotionBox>
+
+      {/* Add the RegisterGymModal component at the bottom of the layout */}
+      <RegisterGymModal
+        isOpen={isRegisterGymModalOpen}
+        onClose={() => setIsRegisterGymModalOpen(false)}
+        onSuccess={handleGymRegistrationSuccess}
+      />
+
+      {/* Add the AppTour component */}
+      <AppTour showTour={showTour} onClose={() => setShowTour(false)} />
     </Box>
   );
 };
