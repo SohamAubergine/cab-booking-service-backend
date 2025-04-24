@@ -16,6 +16,7 @@ import Loading from "./components/Loading";
 import ClassDetails from "./pages/user/ClassDetails";
 import { UserRole } from "./types";
 import { useAuth } from "./context/AuthContext";
+import "./styles/cursors.css"; // Import custom cursors CSS
 
 // Auth pages
 const Login = lazy(() => import("./pages/auth/Login"));

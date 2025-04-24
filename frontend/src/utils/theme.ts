@@ -1,4 +1,8 @@
-import { extendTheme, ThemeConfig } from "@chakra-ui/react";
+import {
+  extendTheme,
+  ThemeConfig,
+  theme as chakraTheme,
+} from "@chakra-ui/react";
 
 // Color mode config
 const config: ThemeConfig = {
@@ -52,8 +56,8 @@ const theme = extendTheme({
   config,
   colors,
   fonts: {
-    heading: "Inter, system-ui, sans-serif",
-    body: "Inter, system-ui, sans-serif",
+    heading: `'Inter', ${chakraTheme.fonts?.heading}`,
+    body: `'Inter', ${chakraTheme.fonts?.body}`,
   },
   fontWeights: {
     normal: 400,
@@ -72,6 +76,7 @@ const theme = extendTheme({
         _focus: {
           boxShadow: "outline",
         },
+        className: "cursor-dumbbell",
       },
       variants: {
         solid: (props) => ({
@@ -157,6 +162,12 @@ const theme = extendTheme({
         fontWeight: "medium",
       },
     },
+    IconButton: {
+      baseStyle: {
+        borderRadius: "md",
+        className: "cursor-dumbbell",
+      },
+    },
   },
   styles: {
     global: (props) => ({
@@ -173,7 +184,7 @@ const theme = extendTheme({
         lineHeight: "base",
       },
       "#root": {
-        height: "100%", 
+        height: "100%",
         width: "100%",
       },
       "::selection": {

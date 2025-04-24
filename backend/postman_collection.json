@@ -1223,6 +1223,39 @@
           "response": []
         },
         {
+          "name": "Register New Gym",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"My Fitness Center\",\n    \"address\": \"123 Main Street, City\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms"]
+            },
+            "description": "Register a new gym. Any authenticated user can create a gym and become its owner. The current authenticated user will automatically be set as the gym owner."
+          },
+          "response": []
+        },
+        {
           "name": "Create Gym Fitness Class",
           "request": {
             "auth": {

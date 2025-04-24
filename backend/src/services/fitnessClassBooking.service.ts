@@ -269,11 +269,11 @@ export const getUserBookings = async (
     skip,
     take: limit,
     include: {
-      user: true,
       fitnessClass: {
         include: {
           category: true,
           instructor: true,
+          gym: true,
         },
       },
     },
@@ -341,6 +341,7 @@ export const getClassBookings = async (
         include: {
           category: true,
           instructor: true,
+          gym: true,
         },
       },
     },

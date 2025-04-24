@@ -142,23 +142,17 @@ export const getUserFavoriteClasses = async (
     where: { userId },
     skip,
     take: limit,
-    orderBy: {
-      createdAt: 'desc',
-    },
     include: {
       fitnessClass: {
         include: {
           category: true,
-          instructor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
-          },
+          instructor: true,
+          gym: true,
         },
       },
+    },
+    orderBy: {
+      createdAt: 'desc',
     },
   })
 

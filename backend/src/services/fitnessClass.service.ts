@@ -14,6 +14,7 @@ export const fetchFitnessClass = async (
       category: true,
       instructor: true,
       bookings: true,
+      gym: true,
     },
   })
 
@@ -41,6 +42,9 @@ export const fetchFitnessClassesWithFiltersAndPagination = async (
       instructor: true,
       bookings: true,
       gym: true,
+    },
+    orderBy: {
+      startsAt: 'asc',
     },
   })
 
@@ -451,6 +455,7 @@ export const fetchAvailableFitnessClasses = async (
       category: true,
       instructor: true,
       bookings: true,
+      gym: true,
       _count: {
         select: {
           bookings: true,
