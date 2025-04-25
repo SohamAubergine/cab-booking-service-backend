@@ -29,6 +29,7 @@ const UserProfile = lazy(() => import("./pages/user/UserProfile"));
 const UserDashboard = lazy(() => import("./pages/user/Dashboard"));
 const Favorites = lazy(() => import("./pages/user/Favorites"));
 const MyGyms = lazy(() => import("./pages/user/MyGyms"));
+const GymClasses = lazy(() => import("./pages/user/GymClasses"));
 
 // Instructor pages
 const InstructorDashboard = lazy(() => import("./pages/instructor/Dashboard"));
@@ -82,6 +83,10 @@ function App() {
                     <Route path="/profile" element={<UserProfile />} />
                     <Route path="/my-gyms" element={<MyGyms />} />
                     <Route path="/gyms/:gymId" element={<GymDetails />} />
+                    <Route
+                      path="/gyms/:gymId/classes"
+                      element={<GymClasses />}
+                    />
                     {/* <Route path="/friends" element={<FriendsPage />} /> */}
                     {/* <Route path="/user/friends" element={<FriendsPage />} /> */}
 
