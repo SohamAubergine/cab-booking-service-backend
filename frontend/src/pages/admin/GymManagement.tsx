@@ -465,6 +465,7 @@ const GymManagement = () => {
                   <Tr>
                     <Th>Gym Name</Th>
                     <Th>Address</Th>
+                    <Th>Location</Th>
                     <Th>Owner</Th>
                     <Th>Created</Th>
                     <Th width="100px">Actions</Th>
@@ -481,6 +482,9 @@ const GymManagement = () => {
                             </Td>
                             <Td>
                               <Skeleton height="20px" width="200px" />
+                            </Td>
+                            <Td>
+                              <Skeleton height="20px" width="120px" />
                             </Td>
                             <Td>
                               <Skeleton height="20px" width="150px" />
@@ -506,6 +510,26 @@ const GymManagement = () => {
                               <Icon as={FaMapMarkerAlt} color="gray.500" />
                               <Text>{gym.address}</Text>
                             </HStack>
+                          </Td>
+                          <Td>
+                            {gym.latitude && gym.longitude ? (
+                              <HStack
+                                as="button"
+                                onClick={() => openMapPreview(gym)}
+                                _hover={{ color: "purple.600" }}
+                                transition="color 0.2s"
+                              >
+                                <Icon as={FaMapMarked} color="purple.500" />
+                                <Text fontSize="sm">
+                                  {gym.latitude.toFixed(4)},{" "}
+                                  {gym.longitude.toFixed(4)}
+                                </Text>
+                              </HStack>
+                            ) : (
+                              <Text color="gray.400" fontSize="sm">
+                                No coordinates
+                              </Text>
+                            )}
                           </Td>
                           <Td>
                             {gym.owner ? (
