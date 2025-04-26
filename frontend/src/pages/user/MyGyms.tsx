@@ -593,24 +593,40 @@ const MyGyms = () => {
                 position="relative"
                 height="100%"
               >
-                <Badge
-                  position="absolute"
-                  top={4}
-                  right={4}
-                  bg={`${accentColor}.500`}
-                  color="white"
-                  fontSize="0.8em"
-                  borderRadius="full"
-                  px={3}
-                  py={1}
-                  fontWeight="medium"
-                  boxShadow="sm"
-                  zIndex={1}
-                >
-                  {user?.role === UserRole.INSTRUCTOR
-                    ? "Teaching Location"
-                    : "Owner"}
-                </Badge>
+                <AspectRatio ratio={16 / 9}>
+                  <Box
+                    bgImage={`url('https://source.unsplash.com/random/600x400/?gym,fitness&${gym.id}')`}
+                    bgSize="cover"
+                    bgPosition="center"
+                    position="relative"
+                  >
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      bg="blackAlpha.300"
+                    />
+                    <Badge
+                      position="absolute"
+                      top={3}
+                      right={3}
+                      bg={`${accentColor}.500`}
+                      color="white"
+                      fontSize="0.8em"
+                      borderRadius="full"
+                      px={3}
+                      py={1}
+                      fontWeight="medium"
+                      boxShadow="sm"
+                    >
+                      {user?.role === UserRole.INSTRUCTOR
+                        ? "Teaching Location"
+                        : "Owner"}
+                    </Badge>
+                  </Box>
+                </AspectRatio>
 
                 <CardHeader pb={0}>
                   <Heading as="h3" size="md" mb={1}>
@@ -716,103 +732,115 @@ const MyGyms = () => {
                   boxShadow: "lg",
                   borderColor: `${accentColor}.300`,
                 }}
-                position="relative"
               >
-                <Badge
-                  position="absolute"
-                  top={4}
-                  right={4}
-                  bg={`${accentColor}.500`}
-                  color="white"
-                  fontSize="0.8em"
-                  borderRadius="full"
-                  px={3}
-                  py={1}
-                  fontWeight="medium"
-                  boxShadow="sm"
-                  zIndex={1}
+                <Grid
+                  templateColumns={{ base: "1fr", md: "200px 1fr" }}
+                  gap={4}
                 >
-                  {user?.role === UserRole.INSTRUCTOR
-                    ? "Teaching Location"
-                    : "Owner"}
-                </Badge>
-
-                <Box p={5}>
-                  <Flex direction="column" h="100%">
-                    <Flex justify="space-between" align="center" mb={2}>
-                      <Heading as="h3" size="md">
-                        {gym.name}
-                      </Heading>
-                      <IconButton
-                        aria-label="More options"
-                        icon={<FaEllipsisH />}
-                        variant="ghost"
-                        colorScheme={accentColor}
-                        size="sm"
-                      />
-                    </Flex>
-                    <Flex alignItems="center" mb={3}>
-                      <Icon
-                        as={MdLocationOn}
-                        color={`${accentColor}.500`}
-                        mr={1}
-                      />
-                      <Text fontSize="sm" color="gray.500">
-                        {gym.address}
-                      </Text>
-                    </Flex>
-
-                    {gym.owner && (
+                  <GridItem>
+                    <Box
+                      h={{ base: "180px", md: "100%" }}
+                      bgImage={`url('https://source.unsplash.com/random/600x400/?gym,fitness&${gym.id}')`}
+                      bgSize="cover"
+                      bgPosition="center"
+                      position="relative"
+                    >
+                      <Badge
+                        position="absolute"
+                        top={3}
+                        left={3}
+                        bg={`${accentColor}.500`}
+                        color="white"
+                        fontSize="0.8em"
+                        borderRadius="full"
+                        px={3}
+                        py={1}
+                        fontWeight="medium"
+                        boxShadow="sm"
+                      >
+                        {user?.role === UserRole.INSTRUCTOR
+                          ? "Teaching Location"
+                          : "Owner"}
+                      </Badge>
+                    </Box>
+                  </GridItem>
+                  <GridItem p={4}>
+                    <Flex direction="column" h="100%">
+                      <Flex justify="space-between" align="center" mb={2}>
+                        <Heading as="h3" size="md">
+                          {gym.name}
+                        </Heading>
+                        <IconButton
+                          aria-label="More options"
+                          icon={<FaEllipsisH />}
+                          variant="ghost"
+                          colorScheme={accentColor}
+                          size="sm"
+                        />
+                      </Flex>
                       <Flex alignItems="center" mb={3}>
-                        <Avatar size="xs" mr={2} name={gym.owner.name}>
-                          <AvatarBadge
-                            boxSize="1em"
-                            bg={`${accentColor}.500`}
-                          />
-                        </Avatar>
-                        <Text fontSize="sm">
-                          <Text as="span" fontWeight="medium">
-                            Owner:
-                          </Text>{" "}
-                          {gym.owner.name}
+                        <Icon
+                          as={MdLocationOn}
+                          color={`${accentColor}.500`}
+                          mr={1}
+                        />
+                        <Text fontSize="sm" color="gray.500">
+                          {gym.address}
                         </Text>
                       </Flex>
-                    )}
 
-                    <Flex flex="1" />
+                      {gym.owner && (
+                        <Flex alignItems="center" mb={3}>
+                          <Avatar size="xs" mr={2} name={gym.owner.name}>
+                            <AvatarBadge
+                              boxSize="1em"
+                              bg={`${accentColor}.500`}
+                            />
+                          </Avatar>
+                          <Text fontSize="sm">
+                            <Text as="span" fontWeight="medium">
+                              Owner:
+                            </Text>{" "}
+                            {gym.owner.name}
+                          </Text>
+                        </Flex>
+                      )}
 
-                    <Flex mt={4} flexWrap="wrap" gap={2}>
-                      <Button
-                        as={Link}
-                        to={`/gyms/${gym.id}`}
-                        colorScheme={accentColor}
-                        variant="outline"
-                        size="sm"
-                        leftIcon={<FaInfoCircle />}
-                      >
-                        Details
-                      </Button>
-                      <Button
-                        colorScheme={accentColor}
-                        size="sm"
-                        leftIcon={<FaPlus />}
-                        onClick={() => handleCreateClass(gym.id)}
-                        mr={2}
-                      >
-                        Add Class
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        colorScheme={accentColor}
-                        size="sm"
-                        rightIcon={<FaArrowRight />}
-                        onClick={() => navigate(`/gyms/${gym.id}/classes`)}
-                      >
-                        View Classes
-                      </Button>
+                      <Flex flex="1" />
+
+                      <Flex mt={4} flexWrap="wrap" gap={2}>
+                        <Button
+                          as={Link}
+                          to={`/gyms/${gym.id}`}
+                          colorScheme={accentColor}
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<FaInfoCircle />}
+                        >
+                          Details
+                        </Button>
+                        <Button
+                          colorScheme={accentColor}
+                          size="sm"
+                          leftIcon={<FaPlus />}
+                          onClick={() => handleCreateClass(gym.id)}
+                          mr={2}
+                        >
+                          Add Class
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          colorScheme={accentColor}
+                          size="sm"
+                          rightIcon={<FaArrowRight />}
+                          onClick={() => navigate(`/gyms/${gym.id}/classes`)}
+                        >
+                          View Classes
+                        </Button>
+                      </Flex>
                     </Flex>
-                  </Flex>
-                </Box>
+                  </GridItem>
+                </Grid>
               </MotionCard>
             ))}
           </VStack>
