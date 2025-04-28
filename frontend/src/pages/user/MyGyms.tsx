@@ -163,25 +163,19 @@ const MyGyms = () => {
 
     try {
       let response;
-      console.log("Fetching gyms for role:", user.role);
 
       // Use different service based on user role
       if (user.role === UserRole.INSTRUCTOR) {
-        console.log("Using instructor service to fetch gyms");
         response = await instructorService.getInstructorGyms(page, 9);
       } else if (user.role === UserRole.ADMIN) {
-        console.log("Using admin service to fetch gyms");
         response = await adminService.getGyms(page, 9);
       } else {
-        console.log("Using user service to fetch gyms");
         response = await userService.getUserGyms(page, 9);
       }
 
-      console.log("API response:", response);
 
       // Check for authentication issues
       if (!response.success && response.message.includes("Authentication")) {
-        console.error("Authentication error:", response.message);
         setError("Authentication error. Please log in again.");
         toast({
           title: "Authentication Error",
@@ -220,7 +214,6 @@ const MyGyms = () => {
         totalItems: metaData.total,
       });
     } catch (err) {
-      console.error("Error fetching gyms:", err);
 
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load gyms";

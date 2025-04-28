@@ -103,10 +103,7 @@ const configureInterceptors = (instance: AxiosInstance): void => {
       const token = localStorage.getItem("token");
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log(
-          "Setting auth header with token:",
-          token.substring(0, 10) + "..."
-        );
+   
         const baseUrl = config.baseURL || "";
         const url = config.url || "";
         console.log("API request to:", baseUrl + url);

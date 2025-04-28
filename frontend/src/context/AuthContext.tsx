@@ -53,8 +53,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Process and store user data
   const processAndStoreUser = (userData: User, authToken: string) => {
     if (!validateUserRole(userData)) {
-      console.error("Invalid user role detected:", userData.role);
-      console.log("Valid roles are:", Object.values(UserRole));
       // Ensure the role is one of the valid enum values
       userData.role = userData.role as UserRole;
     }
@@ -63,8 +61,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setToken(authToken);
     localStorage.setItem("token", authToken);
     localStorage.setItem("user", JSON.stringify(userData));
-
-    console.log("User authenticated with role:", userData.role);
   };
 
   useEffect(() => {
@@ -79,18 +75,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (validateUserRole(parsedUser)) {
           setToken(storedToken);
           setUser(parsedUser);
-          console.log(
-            "Restored authentication for user with role:",
-            parsedUser.role
-          );
         } else {
-          console.error("Invalid user role in stored data:", parsedUser.role);
           // Force logout if stored role is invalid
           localStorage.removeItem("token");
           localStorage.removeItem("user");
         }
       } catch (err) {
-        console.error("Error parsing stored user data:", err);
         localStorage.removeItem("user");
       }
     }

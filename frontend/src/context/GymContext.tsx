@@ -56,33 +56,33 @@ export const GymProvider = ({ children }: GymProviderProps) => {
 
     try {
       let hasGyms = false;
-      console.log(`Checking if ${user.role} with ID ${user.id} has gyms...`);
+      // console.log("Checking gym access for user:", user);
 
       if (user.role === UserRole.INSTRUCTOR) {
         // For instructors, check if they teach at any gyms
-        console.log("Checking instructor gyms...");
+        // console.log("Checking instructor gyms...");
         const response = await instructorService.getInstructorGyms(1, 1);
-        console.log("Instructor gyms response:", response);
+        // console.log("Instructor gyms response:", response);
         hasGyms = response.data.meta.total > 0;
       } else if (user.role === UserRole.USER || user.role === UserRole.ADMIN) {
         // For users, check if they own any gyms
-        console.log("Checking user gyms...");
+        // console.log("Checking user gyms...");
         const response = await userService.getUserGyms(1, 1);
-        console.log("User gyms response:", response);
+        // console.log("User gyms response:", response);
         hasGyms = response.data.meta.total > 0;
       }
 
-      console.log(`User has gyms: ${hasGyms}`);
+      // console.log("User has gyms: " + hasGyms);
       setUserHasGyms(hasGyms);
     } catch (err) {
-      console.error("Error checking gym access:", err);
+      // console.error("Error checking gym access:", err);
       setError("Failed to check gym access");
       setUserHasGyms(false);
 
       // For development, always set to true in case of error to show the button
       // Remove or comment this in production
       if (user.role === UserRole.INSTRUCTOR) {
-        console.log("Setting userHasGyms to true for instructor despite error");
+        // console.log("Setting userHasGyms to true for instructor despite error");
         setUserHasGyms(true);
       }
     } finally {

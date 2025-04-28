@@ -157,7 +157,6 @@ const MapboxMap = ({
         onLocationChange?.({ lng, lat });
       }
     } catch (error) {
-      console.error("Error reverse geocoding:", error);
       onLocationChange?.({ lng, lat });
     }
   };
