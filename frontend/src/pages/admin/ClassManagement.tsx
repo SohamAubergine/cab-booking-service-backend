@@ -271,9 +271,7 @@ const ClassManagement: React.FC = () => {
         }
       }
 
-      if (!response?.extra?.details) {
-        onFormClose();
-      }
+      onFormClose();
     } catch (error) {
       toast({
         title: "Error",

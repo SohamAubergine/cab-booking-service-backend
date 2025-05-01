@@ -134,6 +134,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface ApiResponse<T> {
+  extra: any;
   success: boolean;
   message: string;
   data: T;

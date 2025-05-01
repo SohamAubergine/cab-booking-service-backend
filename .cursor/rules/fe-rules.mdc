@@ -1,0 +1,206 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Project Development Guidelines
+
+## Core Implementation Constraints
+
+```tsx
+// File Structure Pattern
+export function DashboardFeature() {   
+  // 1. Main export (named)
+  // 2. Hooks strictly first
+  const { data, hasError } = useQuery(...)
+
+  // 3. arrow functions
+ const name =(raw: DataSet)=> {
+    return...
+  }
+
+  // 4. Subcomponents (arrow functions)
+  const DataPointTooltip = ({ value }: { value: number }) => (
+    <div className="bg-accent p-2 rounded-sm">
+      ${value.toFixed(2)}
+    </div>
+  )
+
+  // 5. Conditional enforcement
+  if (hasError) {
+    return <ErrorFallback className="mt-4" />
+  }
+
+  return (/* declarative JSX */)
+}
+
+// Types positioned after implementation
+interface DataSegment {
+  id: string
+  range: [number, number]
+}
+```
+
+---
+
+## TypeScript Enforcement
+
+- **Interfaces** over types except for unions/aliases.
+- **Const objects** instead of enums:
+
+```ts
+// Good ✅
+const CATEGORIES = {
+  DINING: "dining",
+  RETAIL: "retail",
+} as const;
+
+// Bad ❌
+// enum Category { DINING, RETAIL }
+```
+
+---
+
+## Functional Purity Rules
+
+```tsx
+// arrow function as standalone functions
+function calculateMetric(transactions: Transaction[]) {
+  return transactions.reduce(...)
+}
+
+// Callbacks as arrow functions
+const handleUpdate = () => {
+  // Closure-safe logic
+}
+```
+
+---
+
+## Performance Directives
+
+```ts
+// Mandatory memoization pattern
+const customerMetric = useMemo(
+  () => calculateMetrics(rawTransactions),
+  [rawTransactions]
+);
+
+// Immutable updates using immer's produce
+const newSegments = produce(existingSegments, (draft) => {
+  draft.push(...validatedSegments);
+});
+```
+
+---
+
+## UI Authoring Standards
+
+```tsx
+// Tailwind-First Styling
+<Card className="p-6 shadow-lg">
+  <CardHeader className="pb-2">
+    <Metric className="text-lg font-semibold">Segment Performance</Metric>
+  </CardHeader>
+</Card>;
+
+// Conditional rendering enforcement
+{
+  hasInitialData ? (
+    <DataGrid columns={COLUMN_DEFS} />
+  ) : (
+    <Spinner className="mx-auto" />
+  );
+}
+```
+
+---
+
+
+## Critical Avoidances
+
+- **Import Ordering:** Maintain consistent import ordering.
+- **Credentials:** Never commit `.env` files or credentials.
+- **Exports:** Use a single named export per file.
+
+---
+
+## Additional Guidelines and Constraints
+
+### Expertise Areas
+
+- **TypeScript**
+- **Node.js**
+- **React**
+- **Vite**
+- **Tailwind CSS**
+- **ShadCN UI**
+
+---
+
+## Response Constraints
+
+- **Do Not Remove** any existing code unless necessary.
+- **Do Not Remove** comments or commented-out code unless required.
+- **Do Not Change** the formatting of imports.
+- **Do Not Change** the formatting of the code unless critical.
+
+---
+
+## Code Style and Structure
+
+- **Conciseness:** Write precise, technical TypeScript code with accurate examples.
+- **Functional & Declarative:** Use functional and declarative programming patterns.
+- **Iteration & Modularization:** Prefer iteration and modularization over code duplication.
+- **Descriptive Naming:** Use descriptive variable names (e.g., isLoading, hasError).
+- **File Layout:** Structure files in this order:
+  1. Exported Component
+  2. Subcomponents
+  3. Helper Functions
+  4. Static Content
+  5. Types
+
+---
+
+## Naming Conventions
+
+- **Directory Names:** Use lowercase with dashes (e.g., components/data-fetching).
+- **Components**: PascalCase (AuthButton.tsx)
+- **Directories:** kebab-case (auth-components/)
+- **Utilities:** camelCase (formatDate.ts)
+- **Custom hooks:** use prefix (useAuth.ts)
+
+---
+
+## TypeScript Usage
+
+- **Strict Typing:** Use TypeScript for all code; prefer interfaces over types.
+- **Avoid Enums:** Use maps (const objects) instead of enums.
+- **Functional Components:** Always use functional components with TypeScript interfaces.
+
+---
+
+## Syntax and Formatting
+
+- **Pure Functions:** Use the `function` keyword for pure functions.
+- **Block Bodies:** Use curly braces for all conditionals; favor simplicity.
+- **JSX:** Use declarative JSX.
+
+---
+
+## UI and Styling
+
+- **Tailwind CSS:** Use Tailwind for all components and styling.
+
+---
+
+## Performance Optimization
+
+- **Immutability:** Use immutable data structures.
+- **Efficient Data Fetching:** Optimize data fetching strategies.
+- **Network Requests:** Reduce redundant network requests.
+- **Data Structures:** Use optimized data structures.
+- **Algorithms:** Choose efficient algorithms.
+- **Rendering:** Optimize rendering strategies.
+- **State Management:** Apply optimal state management techniques.
