@@ -39,6 +39,7 @@ import {
   FormLabel,
   Input,
   FormErrorMessage,
+  Stack,
 } from "@chakra-ui/react";
 import {
   FaUsers,
@@ -55,6 +56,7 @@ import { adminService } from "../../services/api";
 import { User, FitnessClass, CreateGymRequest } from "../../types";
 import ErrorDisplay from "../../components/ErrorDisplay";
 import * as toastUtils from "../../utils/toast";
+import { StatsGrid } from "../../components/dashboard";
 
 // Create motion components
 const MotionBox = motion(Box);
@@ -98,6 +100,162 @@ interface DashboardStats {
   popularClasses: ExtendedFitnessClass[];
 }
 
+// Simple CreateGymModal Component
+interface CreateGymModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onGymCreated: (newGym: any) => void;
+}
+
+const CreateGymModal = ({
+  isOpen,
+  onClose,
+  onGymCreated,
+}: CreateGymModalProps) => {
+  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+
+      // Validate
+      if (!formData.name || !formData.address) {
+        toast({
+          title: "Required fields missing",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Simulate API call
+      setTimeout(() => {
+        onGymCreated({ id: Date.now().toString(), ...formData });
+        onClose();
+        setFormData({
+          name: "",
+          address: "",
+          city: "",
+          state: "",
+          zipCode: "",
+        });
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: "Error creating gym",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Create New Gym</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Stack spacing={4}>
+            <FormControl isRequired>
+              <FormLabel>Gym Name</FormLabel>
+              <Input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Address</FormLabel>
+              <Input
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>City</FormLabel>
+              <Input
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>State</FormLabel>
+              <Input
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Zip Code</FormLabel>
+              <Input
+                name="zipCode"
+                value={formData.zipCode}
+                onChange={handleChange}
+              />
+            </FormControl>
+          </Stack>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" mr={3} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            colorScheme="purple"
+            onClick={handleSubmit}
+            isLoading={loading}
+          >
+            Create Gym
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+// Dashboard stats type
+interface DashboardStatsType {
+  totalUsers: number;
+  activeClasses: number;
+  totalRevenue: number;
+  overallGrowthRate: number;
+  userGrowthRate: number;
+  revenueGrowthRate: number;
+  recentUsers: any[];
+  popularClasses: any[];
+}
+
+const DEFAULT_STATS: DashboardStatsType = {
+  totalUsers: 0,
+  activeClasses: 0,
+  totalRevenue: 0,
+  overallGrowthRate: 0,
+  userGrowthRate: 0,
+  revenueGrowthRate: 0,
+  recentUsers: [],
+  popularClasses: [],
+};
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const toast = useToast();
@@ -115,14 +273,8 @@ const AdminDashboard = () => {
   const [userOptions, setUserOptions] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-  const [dashboardData, setDashboardData] = useState<DashboardStats>({
-    totalUsers: 0,
-    activeClasses: 0,
-    revenue: 0,
-    growthRate: 0,
-    recentUsers: [],
-    popularClasses: [],
-  });
+  const [dashboardData, setDashboardData] =
+    useState<DashboardStatsType>(DEFAULT_STATS);
 
   // Theme colors
   const cardBg = useColorModeValue("white", "gray.800");
@@ -275,6 +427,11 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleGymCreated = (newGym: any) => {
+    toast(toastUtils.successToast("Success", "Gym created successfully"));
+    fetchDashboardStats();
+  };
+
   return (
     <MotionBox initial="hidden" animate="visible" variants={containerVariants}>
       {/* Welcome Section */}
@@ -308,103 +465,12 @@ const AdminDashboard = () => {
 
       {error && <ErrorDisplay error={error} />}
 
-      {/* Stats Grid */}
-      <MotionSimpleGrid
-        columns={{ base: 1, md: 2, lg: 4 }}
-        spacing={6}
-        mb={10}
-        variants={itemVariants}
-      >
-        <Stat
-          bg={statBg}
-          p={5}
-          borderRadius="lg"
-          boxShadow="sm"
-          transition="all 0.3s"
-          _hover={{ transform: "translateY(-5px)", boxShadow: "md" }}
-        >
-          <StatLabel display="flex" alignItems="center">
-            <Icon as={FaUsers} mr={2} color="purple.500" />
-            Total Users
-          </StatLabel>
-          {isLoading ? (
-            <Skeleton height="36px" width="80%" mt={2} mb={2} />
-          ) : (
-            <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              {dashboardData.totalUsers}
-            </StatNumber>
-          )}
-          <StatHelpText>Across all user types</StatHelpText>
-        </Stat>
-
-        <Stat
-          bg={statBg}
-          p={5}
-          borderRadius="lg"
-          boxShadow="sm"
-          transition="all 0.3s"
-          _hover={{ transform: "translateY(-5px)", boxShadow: "md" }}
-        >
-          <StatLabel display="flex" alignItems="center">
-            <Icon as={FaDumbbell} mr={2} color="purple.500" />
-            Active Classes
-          </StatLabel>
-          {isLoading ? (
-            <Skeleton height="36px" width="80%" mt={2} mb={2} />
-          ) : (
-            <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              {dashboardData.activeClasses}
-            </StatNumber>
-          )}
-          <StatHelpText>Currently scheduled</StatHelpText>
-        </Stat>
-
-        <Stat
-          bg={statBg}
-          p={5}
-          borderRadius="lg"
-          boxShadow="sm"
-          transition="all 0.3s"
-          _hover={{ transform: "translateY(-5px)", boxShadow: "md" }}
-        >
-          <StatLabel display="flex" alignItems="center">
-            <Icon as={FaMoneyBillWave} mr={2} color="purple.500" />
-            Monthly Revenue
-          </StatLabel>
-          {isLoading ? (
-            <Skeleton height="36px" width="80%" mt={2} mb={2} />
-          ) : (
-            <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              coming soon
-              {/* ${dashboardData.revenue} */}
-            </StatNumber>
-          )}
-          <StatHelpText>For current month</StatHelpText>
-        </Stat>
-
-        <Stat
-          bg={statBg}
-          p={5}
-          borderRadius="lg"
-          boxShadow="sm"
-          transition="all 0.3s"
-          _hover={{ transform: "translateY(-5px)", boxShadow: "md" }}
-        >
-          <StatLabel display="flex" alignItems="center">
-            <Icon as={FaChartLine} mr={2} color="purple.500" />
-            Growth Rate
-          </StatLabel>
-          {isLoading ? (
-            <Skeleton height="36px" width="80%" mt={2} mb={2} />
-          ) : (
-            <StatNumber fontSize="3xl" fontWeight="bold" color="purple.500">
-              coming soon
-              {/* {dashboardData.growthRate}% */}
-            </StatNumber>
-          )}
-          <StatHelpText>Compared to last month</StatHelpText>
-        </Stat>
-      </MotionSimpleGrid>
+      {/* Dashboard Stats Grid */}
+      <StatsGrid
+        totalUsers={dashboardData.totalUsers}
+        activeClasses={dashboardData.activeClasses}
+        isLoading={isLoading}
+      />
 
       {/* Admin Actions */}
       <MotionBox variants={itemVariants} mb={10}>
@@ -458,9 +524,12 @@ const AdminDashboard = () => {
       </MotionBox>
 
       {/* Main Content */}
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
+      <MotionSimpleGrid
+        columns={{ base: 1, lg: 2 }}
+        spacing={8}
+        variants={itemVariants}
+      >
         {/* Recent Users Section */}
-        <MotionBox variants={itemVariants}>
           <Card
             bg={cardBg}
             borderWidth="1px"
@@ -566,12 +635,15 @@ const AdminDashboard = () => {
                   </Tbody>
                 </Table>
               </TableContainer>
+            {dashboardData.recentUsers.length === 0 && !isLoading && (
+              <Text textAlign="center" py={4} color="gray.500">
+                No users found
+              </Text>
+            )}
             </CardBody>
           </Card>
-        </MotionBox>
 
         {/* Popular Classes Section */}
-        <MotionBox variants={itemVariants}>
           <Card
             bg={cardBg}
             borderWidth="1px"
@@ -641,8 +713,7 @@ const AdminDashboard = () => {
                               </Td>
                             </Tr>
                           ))
-                      : dashboardData.popularClasses.map(
-                          (classItem: ExtendedFitnessClass) => (
+                    : dashboardData.popularClasses.map((classItem) => (
                             <Tr
                               key={classItem.id}
                               _hover={{ bg: tableRowHoverBg }}
@@ -650,9 +721,7 @@ const AdminDashboard = () => {
                             >
                               <Td>
                                 <Box>
-                                  <Text fontWeight="medium">
-                                    {classItem.name}
-                                  </Text>
+                              <Text fontWeight="medium">{classItem.name}</Text>
                                   <Text fontSize="xs" color={textColor}>
                                     by{" "}
                                     {classItem.instructor?.name ||
@@ -664,88 +733,25 @@ const AdminDashboard = () => {
                                 {classItem._count?.bookings || 0}
                               </Td>
                             </Tr>
-                          )
-                        )}
+                      ))}
                   </Tbody>
                 </Table>
               </TableContainer>
+            {dashboardData.popularClasses.length === 0 && !isLoading && (
+              <Text textAlign="center" py={4} color="gray.500">
+                No classes found
+              </Text>
+            )}
             </CardBody>
           </Card>
-        </MotionBox>
-      </SimpleGrid>
+      </MotionSimpleGrid>
 
       {/* Create Gym Modal */}
-      <Modal
+      <CreateGymModal
         isOpen={isCreateGymModalOpen}
         onClose={() => setIsCreateGymModalOpen(false)}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create New Gym</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isInvalid={!!formErrors.name} mb={4}>
-              <FormLabel>Gym Name</FormLabel>
-              <Input
-                name="name"
-                value={gymFormData.name}
-                onChange={handleInputChange}
-                placeholder="Enter gym name"
-              />
-              {formErrors.name && (
-                <FormErrorMessage>{formErrors.name}</FormErrorMessage>
-              )}
-            </FormControl>
-
-            <FormControl isInvalid={!!formErrors.address} mb={4}>
-              <FormLabel>Address</FormLabel>
-              <Input
-                name="address"
-                value={gymFormData.address}
-                onChange={handleInputChange}
-                placeholder="Enter gym address"
-              />
-              {formErrors.address && (
-                <FormErrorMessage>{formErrors.address}</FormErrorMessage>
-              )}
-            </FormControl>
-
-            <FormControl mb={4}>
-              <FormLabel>Owner</FormLabel>
-              <Select
-                name="ownerId"
-                value={gymFormData.ownerId}
-                onChange={handleInputChange}
-                placeholder="Select owner"
-                isDisabled={isLoadingUsers}
-              >
-                {userOptions.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.email})
-                  </option>
-                ))}
-              </Select>
-              <Text fontSize="sm" color="gray.500" mt={1}>
-                If not selected, current user will be set as owner
-              </Text>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="purple"
-              mr={3}
-              onClick={handleSubmitGym}
-              isLoading={isSubmitting}
-            >
-              Create
-            </Button>
-            <Button onClick={() => setIsCreateGymModalOpen(false)}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+        onGymCreated={handleGymCreated}
+      />
     </MotionBox>
   );
 };
