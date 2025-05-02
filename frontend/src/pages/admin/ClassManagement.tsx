@@ -195,16 +195,16 @@ const ClassManagement: React.FC = () => {
       setValue("categoryId", selectedClass.categoryId);
       setValue("instructorId", selectedClass.instructorId);
       setValue("gymId", selectedClass.gymId);
-    setValue(
-      "startsAt",
+      setValue(
+        "startsAt",
         new Date(selectedClass.startsAt).toISOString().slice(0, 16)
-    );
-    setValue(
-      "endsAt",
+      );
+      setValue(
+        "endsAt",
         new Date(selectedClass.endsAt).toISOString().slice(0, 16)
       );
       setValue("capacity", selectedClass.capacity);
-      } else {
+    } else {
       reset();
     }
   }, [selectedClass, isFormOpen, setValue, reset]);
@@ -391,7 +391,7 @@ const ClassManagement: React.FC = () => {
             <Table
               variant="simple"
               size="md"
-        borderWidth="1px"
+              borderWidth="1px"
               borderColor={tableBorderColor}
               borderRadius="md"
             >

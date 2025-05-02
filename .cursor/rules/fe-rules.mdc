@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: true
 ---
 
@@ -204,3 +204,142 @@ const newSegments = produce(existingSegments, (draft) => {
 - **Algorithms:** Choose efficient algorithms.
 - **Rendering:** Optimize rendering strategies.
 - **State Management:** Apply optimal state management techniques.
+
+
+## 1. Code Quality & Standards
+
+### TypeScript Best Practices
+- All variables, props, states, and return types are **explicitly typed**.
+- **Avoid `any`, `as`, and type assertions** unless absolutely necessary.
+- Use **union types, enums, interfaces, and generics** appropriately.
+- Prefer **interfaces** over types for object shapes.
+- Enable and use **strict null checks** (`strictNullChecks: true`).
+
+### Code Consistency
+- Consistent usage of **arrow functions vs named functions**.
+- Maintain consistent **spacing, indentation, and semicolon** usage (via **Prettier/ESLint**).
+- Use **constants/enums** for repeated literals; avoid magic numbers.
+- Avoid **inline styles**, unless for dynamic behavior.
+
+### Linting & Formatting
+- Code passes **ESLint**, **Prettier**, and other static analysis tools.
+- Ensure **no console warnings or errors**.
+
+---
+
+## 2. React Best Practices
+
+### Component Structure
+- Components follow **SRP (Single Responsibility Principle)**.
+- Clear separation between **container and presentational** components.
+- Avoid **deeply nested components**.
+
+### Hooks
+- Strictly follow **Rules of Hooks**.
+- Use **custom hooks** to abstract shared logic.
+- Ensure `useEffect` has the correct **dependency array**.
+- Avoid **side effects in render**.
+
+### JSX Best Practices
+- Keep **minimal logic in JSX**; extract logic into functions or variables.
+- Use **fragments (`<></>`)** to avoid unnecessary DOM wrappers.
+- Ensure **stable and unique keys** in list rendering.
+
+---
+
+## 3. Type Safety & Props Validation
+- Props are **explicitly typed** with interfaces or types.
+- Provide **default values** for optional props.
+- Avoid **prop drilling**—use **context or global state managers** when necessary.
+- **Destructure props** for readability.
+
+---
+
+## 4. State Management
+- Clear separation between **local and global state**.
+- Global state (e.g., Redux, Zustand, Recoil) is **type-safe and optimized**.
+- **State updates are immutable**.
+- Use **memoization** (`React.memo`, `useMemo`, `useCallback`) to prevent re-renders.
+
+---
+
+## 5. Performance
+- Use **lazy loading** (`React.lazy`, dynamic import) for large components.
+- Apply **code splitting** by route or component.
+- Use **memoization** to avoid unnecessary re-renders.
+- **Virtualize long lists** using `react-window` or `react-virtualized`.
+- Implement **Suspense boundaries** where needed.
+
+---
+
+## 6. Accessibility (a11y)
+- All interactive elements are **keyboard-navigable**.
+- Use **semantic HTML** (`<button>`, `<nav>`, `<main>`, etc.).
+- Apply **ARIA attributes** when necessary.
+- Ensure **color contrast** meets WCAG standards.
+- Forms must have **labels** and **accessible error messages**.
+
+---
+
+## 7. Security
+- Avoid using `dangerouslySetInnerHTML` unless content is **sanitized**.
+- Sanitize and validate all **user inputs**.
+- Never hardcode **secrets or sensitive keys** in the client.
+- **Audit third-party packages** (e.g., `npm audit`).
+- Prevent **exposing internal APIs** in client-side code.
+
+---
+
+## 8. Styling
+- Use consistent styling methodology: **Atomic CSS**, **BEM**, or **utility-first (Tailwind)**.
+- Avoid **unused CSS classes or styles**.
+- Ensure **scoped styles** (CSS Modules, styled-components, Tailwind).
+- Use **design tokens/variables** consistently.
+- Test for **responsive design** across breakpoints.
+
+---
+
+## 9. Testing
+- Write **unit tests** for critical logic and components.
+- Use **React Testing Library** (or equivalent) for component testing.
+- Ensure tests are **deterministic** and isolated from external services.
+- Run tests via **CI pipelines before merging**.
+
+---
+
+## 10. Folder & File Structure
+- Follow a **feature/domain-based** organization (not just type-based).
+- Use `index.ts` files **only when necessary**.
+- Consistent **naming conventions** (PascalCase for components, camelCase for variables).
+
+---
+
+## 11. API & Network Calls
+- APIs are **abstracted into reusable modules**.
+- Use `axios` or `fetch` wrappers with **global error handling**.
+- Handle **loading and error states** gracefully.
+- Use **type-safe schemas** for responses (`zod`, `io-ts`, or custom types).
+
+---
+
+## 12. Build & Deployment Readiness
+- Ensure **build completes with zero warnings**.
+- Validate **tree-shaking** effectiveness—no unused code.
+- Separate **environment configurations** using `.env` files.
+- Remove **console logs and debugger statements** from production code.
+
+---
+
+## 13. Documentation & Comments
+- Public functions/components include **JSDoc or clear comments**.
+- Major components have a **README or Storybook docs**.
+- Comments explain **why**, not just what.
+
+---
+
+## 14. Developer Experience
+- Tools like **Storybook**, **Prettier**, **ESLint**, and **Husky hooks** are in place.
+- Setup instructions are clearly documented in **README or CONTRIBUTING**.
+- Use **error boundaries** in critical parts of the app.
+
+---

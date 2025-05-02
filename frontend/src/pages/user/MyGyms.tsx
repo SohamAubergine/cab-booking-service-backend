@@ -173,7 +173,6 @@ const MyGyms = () => {
         response = await userService.getUserGyms(page, 9);
       }
 
-
       // Check for authentication issues
       if (!response.success && response.message.includes("Authentication")) {
         setError("Authentication error. Please log in again.");
@@ -214,7 +213,6 @@ const MyGyms = () => {
         totalItems: metaData.total,
       });
     } catch (err) {
-
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load gyms";
       setError(errorMessage);
