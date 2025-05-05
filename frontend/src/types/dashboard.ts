@@ -8,7 +8,7 @@ export interface ExtendedFitnessClass extends FitnessClass {
   };
 }
 
-export interface DashboardStats {
+export interface DashboardStatsType {
   totalUsers: number;
   activeClasses: number;
   totalRevenue: number;
@@ -19,7 +19,7 @@ export interface DashboardStats {
   popularClasses: ExtendedFitnessClass[];
 }
 
-export const DEFAULT_STATS: DashboardStats = {
+export const DEFAULT_STATS: DashboardStatsType = {
   totalUsers: 0,
   activeClasses: 0,
   totalRevenue: 0,
