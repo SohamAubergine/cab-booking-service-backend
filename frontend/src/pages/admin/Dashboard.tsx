@@ -76,7 +76,8 @@ const AdminDashboard = () => {
     );
   };
 
-  const handleGymCreated = () => {
+  const handleGymCreated = (newGym: any) => {
+    console.log("New gym created:", newGym);
     toast(toastUtils.successToast("Success", "Gym created successfully"));
     fetchDashboardStats();
   };

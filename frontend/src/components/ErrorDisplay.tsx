@@ -15,11 +15,15 @@ import {
 
 interface ErrorDisplayProps {
   /** Error message to display */
-  error: string | null;
+  error?: string | null;
+  /** Alternative property name for error (for backward compatibility) */
+  message?: string;
   /** Optional title for the error */
   title?: string;
   /** Function to clear the error (optional) */
   onClear?: () => void;
+  /** Alternative for onClear (backward compatibility) */
+  onClose?: () => void;
   /** Whether to show the close button */
   closable?: boolean;
   /** Whether to automatically close after a timeout */
@@ -34,24 +38,31 @@ interface ErrorDisplayProps {
 
 const ErrorDisplay = ({
   error,
+  message,
   title = "Error",
   onClear,
+  onClose,
   closable = true,
   autoClose = false,
   autoCloseTimeout = 5000,
   isFormError = false,
   mb,
 }: ErrorDisplayProps) => {
-  const { isOpen, onClose } = useDisclosure({ defaultIsOpen: true });
+  const { isOpen, onClose: internalOnClose } = useDisclosure({
+    defaultIsOpen: true,
+  });
   const bgColor = useColorModeValue("red.50", "rgba(254, 178, 178, 0.16)");
+
+  // Use either error or message property
+  const errorMessage = error || message || null;
 
   // Auto-close functionality
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
-    if (autoClose && error) {
+    if (autoClose && errorMessage) {
       timeoutId = setTimeout(() => {
-        onClose();
+        internalOnClose();
         if (onClear) onClear();
       }, autoCloseTimeout);
     }
@@ -59,14 +70,15 @@ const ErrorDisplay = ({
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [autoClose, error, autoCloseTimeout, onClose, onClear]);
+  }, [autoClose, errorMessage, autoCloseTimeout, internalOnClose, onClear]);
 
   // Don't render anything if there's no error
-  if (!error) return null;
+  if (!errorMessage) return null;
 
   const handleClose = () => {
-    onClose();
+    internalOnClose();
     if (onClear) onClear();
+    if (onClose) onClose();
   };
 
   // Form error style (more compact)
@@ -83,7 +95,7 @@ const ErrorDisplay = ({
         >
           <AlertIcon />
           <Flex justify="space-between" width="100%" align="center">
-            <AlertDescription fontSize="sm">{error}</AlertDescription>
+            <AlertDescription fontSize="sm">{errorMessage}</AlertDescription>
             {closable && <CloseButton size="sm" onClick={handleClose} />}
           </Flex>
         </Alert>
@@ -111,7 +123,7 @@ const ErrorDisplay = ({
             {title}
           </AlertTitle>
           <AlertDescription maxWidth="sm" mb={2}>
-            {error}
+            {errorMessage}
           </AlertDescription>
           {closable && (
             <CloseButton

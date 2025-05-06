@@ -162,7 +162,7 @@ const ReviewForm = ({
           </Text>
         </FormControl>
 
-        {error && <ErrorDisplay message={error} />}
+        {error && <ErrorDisplay error={error} message={error} />}
 
         {!isExistingReview && (
           <Button
