@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  INSTRUCTOR
+  USER
+  ADMIN
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  address  String?
+  role     UserRole
+  dob      DateTime?
+  mobile   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  
+  instructedClasses  FitnessClass[]
+  bookings        FitnessClassBooking[]
+  reviews         FitnessClassReview[]
+  favorites       FavoriteClass[]
+  ownedGyms       Gym[]     // Relation field for gyms owned by this user
+  @@map("users")
+}
+
+model FitnessClassCategory {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  description String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  
+  FitnessClasses FitnessClass[]
+
+  @@map("fitness_class_categories")
+}
+
+model FitnessClass {
+  id         String   @id @default(uuid())
+  name       String
+  categoryId String   @map("category_id")
+  instructorId String @map("instructor_id")
+  gymId      String   @map("gym_id")
+  startsAt   DateTime @map("starts_at")
+  endsAt     DateTime @map("ends_at")
+  capacity   Int      @default(20)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  category   FitnessClassCategory @relation(fields: [categoryId], references: [id])
+  instructor User                 @relation(fields: [instructorId], references: [id])
+  gym        Gym                  @relation(fields: [gymId], references: [id])
+  bookings   FitnessClassBooking[]
+  reviews    FitnessClassReview[]
+  favorites  FavoriteClass[]
+
+  @@map("fitness_classes")
+}
+
+model FitnessClassBooking {
+  id       String @id @default(uuid())
+  userId   String @map("user_id")
+  fitnessClassId  String @map("fitness_class_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user     User         @relation(fields: [userId], references: [id])
+  fitnessClass FitnessClass @relation(fields: [fitnessClassId], references: [id])
+
+  @@map("fitness_class_bookings")
+}
+
+model FitnessClassReview {
+  id              String   @id @default(uuid())
+  rating          Int      // Rating between 1-5
+  feedback        String?  // Optional feedback text
+  userId          String   @map("user_id")
+  fitnessClassId  String   @map("fitness_class_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User         @relation(fields: [userId], references: [id])
+  fitnessClass    FitnessClass @relation(fields: [fitnessClassId], references: [id])
+
+  @@unique([userId, fitnessClassId]) // One review per user per class
+  @@map("fitness_class_reviews")
+}
+
+model FavoriteClass {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  fitnessClassId  String   @map("fitness_class_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User         @relation(fields: [userId], references: [id])
+  fitnessClass    FitnessClass @relation(fields: [fitnessClassId], references: [id])
+
+  @@unique([userId, fitnessClassId]) // Can only favorite a class once
+  @@map("favorite_classes")
+}
+
+model Gym {
+  id String @id @default(uuid())
+  name String
+  address String
+  ownerId String @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  owner User @relation(fields: [ownerId], references: [id])
+  fitnessClasses FitnessClass[]
+  @@map("gyms")
+}
+
+

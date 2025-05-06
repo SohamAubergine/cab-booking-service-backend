@@ -1,0 +1,32 @@
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "target": "es2016",
+    "module": "commonjs",
+    "lib": ["es6"],
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+    // "noEmit": true
+  }
+}

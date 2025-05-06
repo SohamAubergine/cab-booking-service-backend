@@ -1,0 +1,1373 @@
+{
+  "info": {
+    "name": "Fitness Class Booking System API",
+    "description": "API collection for Fitness Class Booking System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Check if the API is up and running"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints to check system health"
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"Password123!\",\n    \"role\": \"USER\",\n    \"mobile\": \"1234567890\",\n    \"address\": \"123 Main St, City\",\n    \"dob\": \"1990-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Register a new user in the system. Only USER and INSTRUCTOR roles are allowed for public registration. Returns the created user without password."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Instructor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"password\": \"Password123!\",\n    \"role\": \"INSTRUCTOR\",\n    \"mobile\": \"0987654321\",\n    \"address\": \"456 Fitness Ave, City\",\n    \"dob\": \"1985-05-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Register a new instructor in the system. Only USER and INSTRUCTOR roles are allowed for public registration. Returns the created user without password."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"authToken\", jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login with user credentials and get auth token"
+          },
+          "response": []
+        }
+      ],
+      "description": "User authentication endpoints"
+    },
+    {
+      "name": "Fitness Classes",
+      "item": [
+        {
+          "name": "Get Available Fitness Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fitness-classes?page=1&limit=10&name=yoga&gymId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fitness-classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "name",
+                  "value": "yoga",
+                  "description": "Search by class name (optional)"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "Filter by category ID (optional)",
+                  "disabled": true
+                },
+                {
+                  "key": "instructorId",
+                  "value": "",
+                  "description": "Filter by instructor ID (optional)",
+                  "disabled": true
+                },
+                {
+                  "key": "gymId",
+                  "value": "",
+                  "description": "Filter by gym ID (single ID or comma-separated list of IDs)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateFrom",
+                  "value": "",
+                  "description": "Filter classes starting after this date (ISO format, optional)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateTo",
+                  "value": "",
+                  "description": "Filter classes starting before this date (ISO format, optional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get available fitness classes with filtering and pagination. Only shows classes that start at least 1 hour from now. Excludes classes already booked by the current user. Returns a paginated result with fitness class data including capacity and current booking count information."
+          },
+          "response": []
+        },
+        {
+          "name": "Book Fitness Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fitness-classes/:fitnessClassId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fitness-classes", ":fitnessClassId"],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to book"
+                }
+              ]
+            },
+            "description": "Book a fitness class for the current user. Requires authentication. Class must start at least 1 hour from now to be eligible for booking. Booking will fail if the class is already at full capacity."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Fitness Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fitness-classes/:fitnessClassId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fitness-classes", ":fitnessClassId"],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to retrieve"
+                }
+              ]
+            },
+            "description": "Get a specific fitness class by ID. Returns detailed information including the category, instructor, capacity, current booking count, and available spots."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for users to interact with fitness classes"
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get User Bookings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/bookings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "bookings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get a list of the current user's fitness class bookings with pagination. Requires authentication. Returns a paginated result with booking data including fitness class details."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for users to manage their bookings"
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "Get User Favorites",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/favorites?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "favorites"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get a list of the current user's favorite fitness classes with pagination. Requires authentication. Returns a paginated result with favorite data including fitness class details."
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/favorites/:fitnessClassId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "favorites", ":fitnessClassId"],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to add to favorites"
+                }
+              ]
+            },
+            "description": "Add a fitness class to the current user's favorites. Requires authentication. Returns success message and favorite details."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove from Favorites",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/favorites/:fitnessClassId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "favorites", ":fitnessClassId"],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to remove from favorites"
+                }
+              ]
+            },
+            "description": "Remove a fitness class from the current user's favorites. Requires authentication. Returns success message."
+          },
+          "response": []
+        },
+        {
+          "name": "Check Favorite Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/favorites/:fitnessClassId/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "favorites", ":fitnessClassId", "status"],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to check favorite status"
+                }
+              ]
+            },
+            "description": "Check if a fitness class is in the current user's favorites. Requires authentication. Returns a boolean indicating if the class is favorited."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for users to manage their favorite classes"
+    },
+    {
+      "name": "Instructors",
+      "item": [
+        {
+          "name": "Get Instructor Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/instructors/classes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "instructors", "classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get a list of fitness classes for which the authenticated user is the instructor. Requires INSTRUCTOR role. Returns a paginated result with class details including booking information."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Instructor's Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/instructors/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "instructors", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get gyms for the authenticated instructor with pagination. Requires INSTRUCTOR role. Returns a paginated list of gyms with ownership details."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for instructors to manage their classes"
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Fitness Classes",
+          "item": [
+            {
+              "name": "Get All Fitness Classes",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/fitness-classes?page=1&limit=10&name=yoga&gymId=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "fitness-classes"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number for pagination"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of items per page"
+                    },
+                    {
+                      "key": "name",
+                      "value": "yoga",
+                      "description": "Search by class name (optional)"
+                    },
+                    {
+                      "key": "categoryId",
+                      "value": "",
+                      "description": "Filter by category ID (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "instructorId",
+                      "value": "",
+                      "description": "Filter by instructor ID (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "gymId",
+                      "value": "",
+                      "description": "Filter by gym ID (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "startDateFrom",
+                      "value": "",
+                      "description": "Filter classes starting after this date (ISO format, optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "startDateTo",
+                      "value": "",
+                      "description": "Filter classes starting before this date (ISO format, optional)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Get a list of all fitness classes with filtering and pagination. Requires admin role. Returns a paginated result with fitness class data."
+              },
+              "response": []
+            },
+            {
+              "name": "Create Fitness Class",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Yoga for Beginners\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"gymId\": \"your-gym-id\",\n    \"startsAt\": \"2024-07-15T10:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"capacity\": 25\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/fitness-classes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "fitness-classes"]
+                },
+                "description": "Create a new fitness class. Requires admin role. The start and end times must be valid ISO datetime strings, and the end time must be after the start time. Capacity defines the maximum number of participants that can book the class (defaults to 20 if not specified). GymId is required to associate the class with a specific gym."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Fitness Class",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Updated Yoga Class\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"gymId\": \"your-gym-id\",\n    \"startsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T12:00:00.000Z\",\n    \"capacity\": 30\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/fitness-classes/:fitnessClassId",
+                  "host": ["{{baseUrl}}"],
+                  "path": [
+                    "api",
+                    "admin",
+                    "fitness-classes",
+                    ":fitnessClassId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "fitnessClassId",
+                      "value": "your-fitness-class-id",
+                      "description": "ID of the fitness class to update"
+                    }
+                  ]
+                },
+                "description": "Update an existing fitness class. Requires admin role. All fields are optional - only provided fields will be updated. If updating time or instructor, checks are performed to avoid scheduling conflicts. Capacity must be a positive integer if specified. You can also update the gym where the class is held."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Fitness Class",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/fitness-classes/:fitnessClassId",
+                  "host": ["{{baseUrl}}"],
+                  "path": [
+                    "api",
+                    "admin",
+                    "fitness-classes",
+                    ":fitnessClassId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "fitnessClassId",
+                      "value": "your-fitness-class-id",
+                      "description": "ID of the fitness class to delete"
+                    }
+                  ]
+                },
+                "description": "Delete a fitness class. Requires admin role. Cannot delete classes that have active bookings."
+              },
+              "response": []
+            }
+          ],
+          "description": "Admin endpoints for managing fitness classes"
+        },
+        {
+          "name": "Instructors",
+          "item": [
+            {
+              "name": "Get All Instructors",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/instructors?page=1&limit=10&name=smith",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "instructors"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number for pagination"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of items per page"
+                    },
+                    {
+                      "key": "name",
+                      "value": "smith",
+                      "description": "Search instructor by name (optional)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Get a list of all instructors with pagination and optional name search. Requires ADMIN role. Returns a paginated result with instructor data including the count of classes they teach."
+              },
+              "response": []
+            }
+          ],
+          "description": "Admin endpoints for managing instructors"
+        },
+        {
+          "name": "Gym Management",
+          "item": [
+            {
+              "name": "Get All Gyms",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/gyms?page=1&limit=10&name=fitness",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "gyms"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number for pagination"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of items per page"
+                    },
+                    {
+                      "key": "name",
+                      "value": "fitness",
+                      "description": "Filter gyms by name (optional)",
+                      "disabled": false
+                    },
+                    {
+                      "key": "address",
+                      "value": "",
+                      "description": "Filter gyms by address (optional)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "ownerId",
+                      "value": "",
+                      "description": "Filter gyms by owner ID (optional)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Get a list of all gyms with pagination and filtering. Requires admin role. Returns a paginated result with gym data including owner details."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Gym By ID",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/gyms/:gymId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "gyms", ":gymId"],
+                  "variable": [
+                    {
+                      "key": "gymId",
+                      "value": "your-gym-id",
+                      "description": "ID of the gym to retrieve"
+                    }
+                  ]
+                },
+                "description": "Get details of a specific gym by ID. Requires admin role. Returns the gym data including owner details."
+              },
+              "response": []
+            },
+            {
+              "name": "Create Gym",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Fitness Center\",\n    \"address\": \"123 Fitness Street, City\",\n    \"ownerId\": \"your-owner-id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/gyms",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "admin", "gyms"]
+                },
+                "description": "Create a new gym. Requires admin role. Owner ID is optional - if not provided, the current authenticated user will be set as the owner."
+              },
+              "response": []
+            }
+          ],
+          "description": "Admin endpoints for managing gyms"
+        }
+      ],
+      "description": "Admin-only endpoints"
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all fitness class categories with pagination. Returns category ID, name, and description."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "your-user-id",
+                  "description": "ID of the user to retrieve (use your own ID unless you're an admin)"
+                }
+              ]
+            },
+            "description": "Get user details by ID. Users can only access their own profile unless they are admins. Returns user data without the password."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User's Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ]
+            },
+            "description": "Get gyms owned by the authenticated user with pagination. Returns a paginated list of gyms with ownership details."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Submit Review",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fitnessClassId\": \"your-fitness-class-id\",\n    \"rating\": 5,\n    \"feedback\": \"Great class! Really enjoyed the workout and the instructor was very helpful.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews"]
+            },
+            "description": "Submit a review for a fitness class. Requires authentication. User must have booked the class and the class must have already ended. Rating must be between 1-5 stars."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class Reviews",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/classes/:fitnessClassId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews", "classes", ":fitnessClassId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to get reviews for"
+                }
+              ]
+            },
+            "description": "Get all reviews for a fitness class with pagination. Requires authentication. Returns a paginated list of reviews with user details."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class Rating Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/classes/:fitnessClassId/summary",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "classes",
+                ":fitnessClassId",
+                "summary"
+              ],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to get rating summary for"
+                }
+              ]
+            },
+            "description": "Get rating summary for a fitness class. Requires authentication. Returns average rating and distribution of ratings (1-5 stars)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Review for Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/classes/:fitnessClassId/user",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "classes",
+                ":fitnessClassId",
+                "user"
+              ],
+              "variable": [
+                {
+                  "key": "fitnessClassId",
+                  "value": "your-fitness-class-id",
+                  "description": "ID of the fitness class to get user's review for"
+                }
+              ]
+            },
+            "description": "Get the current user's review for a fitness class. Requires authentication. Returns the authenticated user's review for the specified class or a 404 error if no review exists."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for users to review fitness classes they have attended"
+    },
+    {
+      "name": "Gym Management",
+      "item": [
+        {
+          "name": "Get Gym Fitness Classes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms/:gymId/fitness-classes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms", ":gymId", "fitness-classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filter by class name",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "Filter by category ID",
+                  "disabled": true
+                },
+                {
+                  "key": "instructorId",
+                  "value": "",
+                  "description": "Filter by instructor ID",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateFrom",
+                  "value": "",
+                  "description": "Filter classes starting after this date (ISO format)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDateTo",
+                  "value": "",
+                  "description": "Filter classes starting before this date (ISO format)",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "gymId",
+                  "value": "your-gym-id",
+                  "description": "ID of the gym to get fitness classes for"
+                }
+              ]
+            },
+            "description": "Get all fitness classes for a specific gym. Requires authentication. Returns a paginated list of fitness classes for the gym. Supports various filters including class name, category, instructor, and date range."
+          },
+          "response": []
+        },
+        {
+          "name": "Register New Gym",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"My Fitness Center\",\n    \"address\": \"123 Main Street, City\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms"]
+            },
+            "description": "Register a new gym. Any authenticated user can create a gym and become its owner. The current authenticated user will automatically be set as the gym owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gym Fitness Class",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Yoga for Beginners\",\n    \"categoryId\": \"your-category-id\",\n    \"instructorId\": \"your-instructor-id\",\n    \"startsAt\": \"2024-07-15T10:00:00.000Z\",\n    \"endsAt\": \"2024-07-15T11:00:00.000Z\",\n    \"capacity\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms/:gymId/fitness-classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms", ":gymId", "fitness-classes"],
+              "variable": [
+                {
+                  "key": "gymId",
+                  "value": "your-gym-id",
+                  "description": "ID of the gym where the class will be held"
+                }
+              ]
+            },
+            "description": "Create a new fitness class at a specific gym. Requires authentication and gym ownership. Only gym owners can create classes for their own gyms. The gymId will be automatically taken from the URL parameter."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Gyms",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/gyms?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "gyms"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filter gyms by name",
+                  "disabled": true
+                },
+                {
+                  "key": "address",
+                  "value": "",
+                  "description": "Filter gyms by address",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get gyms owned by the current authenticated user with pagination and filtering. Requires authentication. Returns a paginated list of gyms."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for gym management and related operations"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
